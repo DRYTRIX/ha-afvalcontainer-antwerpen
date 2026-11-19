@@ -1,0 +1,140 @@
+{
+  "config": {
+    "step": {
+      "auth": {
+        "title": "Koppel je account",
+        "description": "1. Meld je aan op [afvalcontainer.antwerpen.be]({url}) en open **Saldo**.\n2. Druk op **F12** → tabblad **Netwerk** → herlaad de pagina (**F5**).\n3. Klik met de rechtermuisknop op het eerste verzoek (**saldo**) → **Kopiëren** → **Kopiëren als cURL**.\n4. Plak het hieronder.\n\nEen gekopieerde `Cookie:`-header of een JSON-export van een cookie-extensie werkt ook. Enkel de sessiecookies worden bewaard; de rest wordt weggegooid.",
+        "data": {
+          "login_data": "Plak je aanmeldgegevens"
+        },
+        "data_description": {
+          "login_data": "Het gekopieerde cURL-commando, de Cookie-header of de cookie-export."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Opnieuw aanmelden",
+        "description": "Je sessie op afvalcontainer.antwerpen.be is verlopen. Plak nieuwe aanmeldgegevens:\n\n1. Meld je aan op [afvalcontainer.antwerpen.be]({url}) en open **Saldo**.\n2. Druk op **F12** → tabblad **Netwerk** → herlaad de pagina (**F5**).\n3. Klik met de rechtermuisknop op het eerste verzoek (**saldo**) → **Kopiëren** → **Kopiëren als cURL**.\n4. Plak het hieronder.\n\nEen gekopieerde `Cookie:`-header of een JSON-export van een cookie-extensie werkt ook. Enkel de sessiecookies worden bewaard; de rest wordt weggegooid.",
+        "data": {
+          "login_data": "Plak je aanmeldgegevens"
+        },
+        "data_description": {
+          "login_data": "Het gekopieerde cURL-commando, de Cookie-header of de cookie-export."
+        }
+      },
+      "reconfigure": {
+        "title": "Aanmeldgegevens bijwerken",
+        "description": "1. Meld je aan op [afvalcontainer.antwerpen.be]({url}) en open **Saldo**.\n2. Druk op **F12** → tabblad **Netwerk** → herlaad de pagina (**F5**).\n3. Klik met de rechtermuisknop op het eerste verzoek (**saldo**) → **Kopiëren** → **Kopiëren als cURL**.\n4. Plak het hieronder.\n\nEen gekopieerde `Cookie:`-header of een JSON-export van een cookie-extensie werkt ook. Enkel de sessiecookies worden bewaard; de rest wordt weggegooid.",
+        "data": {
+          "login_data": "Plak je aanmeldgegevens"
+        },
+        "data_description": {
+          "login_data": "Het gekopieerde cURL-commando, de Cookie-header of de cookie-export."
+        }
+      }
+    },
+    "error": {
+      "invalid_format": "Geen sessiecookie van afvalcontainer gevonden in de geplakte tekst. Kopieer het verzoek van de Saldo-pagina terwijl je aangemeld bent.",
+      "invalid_auth": "De sessie is verlopen of niet aangemeld. Meld je opnieuw aan op de website en kopieer nieuwe gegevens.",
+      "cannot_connect": "Kan afvalcontainer.antwerpen.be niet bereiken. Probeer het later opnieuw.",
+      "unknown": "Onverwachte fout, bekijk het Home Assistant-logboek."
+    },
+    "abort": {
+      "already_configured": "Dit account is al ingesteld.",
+      "wrong_account": "De geplakte aanmeldgegevens horen bij een ander account.",
+      "reauth_successful": "Aanmeldgegevens bijgewerkt.",
+      "reconfigure_successful": "Aanmeldgegevens bijgewerkt."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties",
+        "description": "Het ophalen houdt ook de websitesessie levend (die verloopt na 2 uur zonder activiteit).\n\nLaat de drempel leeg om het minimumsaldo van de site te gebruiken (nu € {minimum}).",
+        "data": {
+          "scan_interval": "Update-interval",
+          "low_balance_threshold": "Drempel laag saldo"
+        },
+        "data_description": {
+          "scan_interval": "Minuten tussen updates (10-90).",
+          "low_balance_threshold": "De sensor laag saldo gaat aan onder dit bedrag."
+        }
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "new_emptying": "Nieuwe lediging geregistreerd",
+      "new_topup": "Nieuwe provisie geregistreerd"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "balance": {
+        "name": "Saldo"
+      },
+      "minimum_balance": {
+        "name": "Minimumsaldo"
+      },
+      "last_emptying": {
+        "name": "Laatste lediging"
+      },
+      "last_emptying_weight": {
+        "name": "Gewicht laatste lediging"
+      },
+      "last_emptying_cost": {
+        "name": "Kost laatste lediging"
+      },
+      "weight_this_year": {
+        "name": "Gewicht dit jaar"
+      },
+      "weight_this_month": {
+        "name": "Gewicht deze maand"
+      },
+      "cost_this_year": {
+        "name": "Kosten dit jaar"
+      },
+      "cost_this_month": {
+        "name": "Kosten deze maand"
+      },
+      "emptyings_this_year": {
+        "name": "Ledigingen dit jaar"
+      },
+      "last_topup": {
+        "name": "Laatste provisie"
+      },
+      "history": {
+        "name": "Historiek"
+      },
+      "container_last_emptying": {
+        "name": "Laatste lediging {container}"
+      },
+      "container_weight_this_year": {
+        "name": "Gewicht dit jaar {container}"
+      }
+    },
+    "binary_sensor": {
+      "low_balance": {
+        "name": "Laag saldo"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Vernieuwen"
+      }
+    }
+  },
+  "exceptions": {
+    "session_expired": {
+      "message": "De afvalcontainer-sessie is verlopen en kon niet automatisch vernieuwd worden."
+    },
+    "server_error": {
+      "message": "afvalcontainer.antwerpen.be gaf een fout: {error}"
+    },
+    "cannot_connect": {
+      "message": "Kan afvalcontainer.antwerpen.be niet bereiken: {error}"
+    },
+    "parse_error": {
+      "message": "Kan de saldopagina niet lezen (de website is mogelijk gewijzigd): {error}"
+    }
+  }
+}

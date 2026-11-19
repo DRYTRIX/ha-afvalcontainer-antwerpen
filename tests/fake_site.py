@@ -50,6 +50,7 @@ class FakeSite:
         default_factory=lambda: load_fixture("containers_page.json")
     )
     fail_with: int | None = None
+    renew: bool = True
     requests: list[tuple[str, str, bool]] = field(default_factory=list)
     _counter: itertools.count = field(default_factory=lambda: itertools.count(1))
 
@@ -71,6 +72,8 @@ class FakeSite:
         return web.Response(text=body, content_type="text/html")
 
     def _renew(self, response: web.StreamResponse) -> None:
+        if not self.renew:
+            return
         response.set_cookie(SESSION, self.new_session(), max_age=7200, httponly=True)
         response.set_cookie("XSRF-TOKEN", f"xsrf{next(self._counter):04d}", max_age=7200)
 

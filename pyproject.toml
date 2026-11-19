@@ -20,11 +20,11 @@ ignore = [
   "D203", "D213",       # conflicting docstring styles
   "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR2004",
   "TRY003",             # long exception messages are fine
-  "TC006",
+  "TC001", "TC002", "TC003", "TC006",  # HA style keeps runtime imports
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "SLF001", "D103", "PLR2004", "INP001", "S105", "S106"]
+"tests/**" = ["PLR0917", "S101", "SLF001", "D103", "PLR2004", "INP001", "S105", "S106"]
 "scripts/**" = ["T201", "INP001", "S"]
 
 [tool.ruff.lint.isort]

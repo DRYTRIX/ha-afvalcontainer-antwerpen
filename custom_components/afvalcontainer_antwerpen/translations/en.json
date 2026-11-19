@@ -1,0 +1,140 @@
+{
+  "config": {
+    "step": {
+      "auth": {
+        "title": "Connect your account",
+        "description": "1. Log in at [afvalcontainer.antwerpen.be]({url}) and open **Saldo**.\n2. Press **F12** → **Network** tab → reload the page (**F5**).\n3. Right-click the first request (**saldo**) → **Copy** → **Copy as cURL**.\n4. Paste it below.\n\nA copied `Cookie:` header or a cookie-editor JSON export works too. Only the session cookies are kept; everything else is thrown away.",
+        "data": {
+          "login_data": "Paste your login data"
+        },
+        "data_description": {
+          "login_data": "The copied cURL command, Cookie header or cookie export."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Log in again",
+        "description": "Your session on afvalcontainer.antwerpen.be has expired. Paste fresh login data:\n\n1. Log in at [afvalcontainer.antwerpen.be]({url}) and open **Saldo**.\n2. Press **F12** → **Network** tab → reload the page (**F5**).\n3. Right-click the first request (**saldo**) → **Copy** → **Copy as cURL**.\n4. Paste it below.\n\nA copied `Cookie:` header or a cookie-editor JSON export works too. Only the session cookies are kept; everything else is thrown away.",
+        "data": {
+          "login_data": "Paste your login data"
+        },
+        "data_description": {
+          "login_data": "The copied cURL command, Cookie header or cookie export."
+        }
+      },
+      "reconfigure": {
+        "title": "Update login data",
+        "description": "1. Log in at [afvalcontainer.antwerpen.be]({url}) and open **Saldo**.\n2. Press **F12** → **Network** tab → reload the page (**F5**).\n3. Right-click the first request (**saldo**) → **Copy** → **Copy as cURL**.\n4. Paste it below.\n\nA copied `Cookie:` header or a cookie-editor JSON export works too. Only the session cookies are kept; everything else is thrown away.",
+        "data": {
+          "login_data": "Paste your login data"
+        },
+        "data_description": {
+          "login_data": "The copied cURL command, Cookie header or cookie export."
+        }
+      }
+    },
+    "error": {
+      "invalid_format": "No afvalcontainer session cookie found in the pasted text. Copy the request of the Saldo page while you are logged in.",
+      "invalid_auth": "The session has expired or is not logged in. Log in again on the website and copy fresh data.",
+      "cannot_connect": "Could not reach afvalcontainer.antwerpen.be. Try again later.",
+      "unknown": "Unexpected error, see the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "wrong_account": "The pasted login data belongs to a different account.",
+      "reauth_successful": "Login data updated.",
+      "reconfigure_successful": "Login data updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "description": "Polling also keeps the website session alive (it expires after 2 hours without activity).\n\nLeave the threshold empty to use the site's minimum balance (currently € {minimum}).",
+        "data": {
+          "scan_interval": "Update interval",
+          "low_balance_threshold": "Low balance threshold"
+        },
+        "data_description": {
+          "scan_interval": "Minutes between updates (10-90).",
+          "low_balance_threshold": "The low balance sensor turns on below this amount."
+        }
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "new_emptying": "New emptying registered",
+      "new_topup": "New top-up registered"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "balance": {
+        "name": "Balance"
+      },
+      "minimum_balance": {
+        "name": "Minimum balance"
+      },
+      "last_emptying": {
+        "name": "Last emptying"
+      },
+      "last_emptying_weight": {
+        "name": "Last emptying weight"
+      },
+      "last_emptying_cost": {
+        "name": "Last emptying cost"
+      },
+      "weight_this_year": {
+        "name": "Weight this year"
+      },
+      "weight_this_month": {
+        "name": "Weight this month"
+      },
+      "cost_this_year": {
+        "name": "Cost this year"
+      },
+      "cost_this_month": {
+        "name": "Cost this month"
+      },
+      "emptyings_this_year": {
+        "name": "Emptyings this year"
+      },
+      "last_topup": {
+        "name": "Last top-up"
+      },
+      "history": {
+        "name": "History"
+      },
+      "container_last_emptying": {
+        "name": "Last emptying {container}"
+      },
+      "container_weight_this_year": {
+        "name": "Weight this year {container}"
+      }
+    },
+    "binary_sensor": {
+      "low_balance": {
+        "name": "Low balance"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    }
+  },
+  "exceptions": {
+    "session_expired": {
+      "message": "The afvalcontainer session expired and could not be renewed automatically."
+    },
+    "server_error": {
+      "message": "afvalcontainer.antwerpen.be returned an error: {error}"
+    },
+    "cannot_connect": {
+      "message": "Could not reach afvalcontainer.antwerpen.be: {error}"
+    },
+    "parse_error": {
+      "message": "Could not read the balance page (the website may have changed): {error}"
+    }
+  }
+}
