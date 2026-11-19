@@ -94,17 +94,26 @@ async def mock_site(site_server: str, monkeypatch: pytest.MonkeyPatch) -> AsyncG
     """Route the integration (setup and config flow) to the fake site."""
     monkeypatch.setenv(ENV_BASE_URL, APP_URL)
     monkeypatch.setenv(ENV_SSO_URL, SSO_URL)
+    # In production HA owns (and shares) the connector, so the config flow only
+    # detach()es its session. Here each session gets its own unix connector, which
+    # the fixture closes itself.
     sessions: list[aiohttp.ClientSession] = []
+    connectors: list[aiohttp.BaseConnector] = []
 
     def _factory(hass: HomeAssistant, **kwargs: Any) -> aiohttp.ClientSession:
-        sessions.append(make_session(site_server))
-        return sessions[-1]
+        session = make_session(site_server)
+        sessions.append(session)
+        connectors.append(session.connector)
+        return session
 
     with patch("custom_components.afvalcontainer_antwerpen.create_session", side_effect=_factory):
         yield
     for session in sessions:
         if not session.closed:
             await session.close()
+    for connector in connectors:
+        if not connector.closed:
+            await connector.close()
 
 
 @pytest.fixture

@@ -43,6 +43,20 @@ Running checklist. Each phase ends with a commit.
 - [x] Devcontainer + scripts/develop, scripts/setup, scripts/lint
 
 ## Phase 6 — Verification & optional research
-- [ ] Run a dev HA instance with the integration, add it through the UI (with the fake site / real cookies)
-- [ ] docs/auth-research.md (password login automation feasibility)
-- [ ] Personal-data sweep of repo + history
+- [x] Dev HA instance (`scripts/develop --fake`, HA 2026.10.4): added the integration via the
+      config-flow API the UI uses: form, `invalid_format` error, cURL paste → entry + 19 entities;
+      options flow reload; diagnostics download (no leaks); restart → expired session → reauth
+      flow → `reauth_successful`; duplicate → `already_configured`
+- [x] Fixed a bug found there: HA-created client sessions must be detached, not closed
+- [x] hassfest (official Docker image): 0 invalid integrations
+- [x] Release workflow steps simulated locally (tag → manifest version, zip layout)
+- [x] `scripts/probe` against the real site with a dummy cookie: correctly "not logged in"
+- [x] docs/auth-research.md: A-profiel offers only itsme / eID / federal app / SMS → no password
+      automation; cookie paste stays the only method
+- [x] Personal-data sweep of tracked files and history contents (clean; see note on commit author)
+
+## Still open (needs a real account or GitHub)
+- [ ] Verify silent SSO re-login with real Keycloak cookies (`scripts/probe --sso`)
+- [ ] Check `/mijn-containers/containers` and `/saldo/export` shapes (`scripts/probe`)
+- [ ] HACS action run (needs the public GitHub repo)
+- [ ] Replace placeholder screenshots
