@@ -1,0 +1,8 @@
+{
+  "name": "Afvalcontainer Antwerpen",
+  "render_readme": true,
+  "homeassistant": "2026.3.0",
+  "country": "BE",
+  "zip_release": true,
+  "filename": "afvalcontainer_antwerpen.zip"
+}

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Home Assistant dev instance (scripts/develop)
+config/*
+!config/configuration.yaml
+
+# Local secrets / captured pages: NEVER commit real cookies or account pages
+*.cookies
+*.har
+captures/
+local/
+
+# Editors / OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+.DS_Store
+dist/
+*.zip

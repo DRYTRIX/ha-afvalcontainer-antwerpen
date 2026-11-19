@@ -1,0 +1,43 @@
+[project]
+name = "ha-afvalcontainer-antwerpen"
+version = "0.1.0"
+description = "Home Assistant integration for the Antwerp diftar container balance"
+requires-python = ">=3.14"
+license = "MIT"
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["config"]
+
+[tool.ruff.lint]
+select = [
+  "A", "ASYNC", "B", "C4", "D", "E", "F", "FLY", "G", "I", "ICN", "INP", "LOG",
+  "N", "PERF", "PGH", "PIE", "PL", "PT", "PTH", "RET", "RSE", "RUF", "S", "SIM",
+  "SLF", "T20", "TC", "TID", "TRY", "UP", "W",
+]
+ignore = [
+  "D203", "D213",       # conflicting docstring styles
+  "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR2004",
+  "TRY003",             # long exception messages are fine
+  "TC006",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "SLF001", "D103", "PLR2004", "INP001", "S105", "S106"]
+"scripts/**" = ["T201", "INP001", "S"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components", "tests"]
+combine-as-imports = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "--strict-markers"
+filterwarnings = ["ignore::DeprecationWarning:pytest_asyncio.*"]
