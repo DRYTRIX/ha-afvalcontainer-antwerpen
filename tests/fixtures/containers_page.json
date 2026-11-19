@@ -1,0 +1,18 @@
+{
+  "component": "survey/my-containers/containers/Index",
+  "version": "945201f29f1ef9549c7fd75a7c3a3cea",
+  "url": "/mijn-containers/containers",
+  "props": {
+    "auth": {"user": {"id": 4242, "first_name": "Jan", "email": "jan.testpersoon@example.com"}},
+    "linkedAddresses": [
+      {
+        "id": 1,
+        "address": "Voorbeeldstraat 1, 2000 Antwerpen",
+        "containers": [
+          {"number": "0040000000000001", "fraction": {"value": "residual_waste", "label": "Restafval"}, "volume": "120 l"},
+          {"number": "0040000000000002", "fraction": {"value": "residual_waste", "label": "Restafval"}, "volume": "240 l"}
+        ]
+      }
+    ]
+  }
+}

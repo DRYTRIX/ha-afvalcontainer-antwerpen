@@ -16,11 +16,11 @@ Running checklist. Each phase ends with a commit.
 - [x] hacs.json, manifest.json (0.1.0, `<GITHUB_USER>` placeholders)
 
 ## Phase 2 — API client (`api.py`, no HA imports)
-- [ ] Login-data paste parser (cookie header, cURL bash/cmd/PowerShell, Firefox headers, cookie-editor JSON, cookies.txt)
-- [ ] Dutch number parsing, defensive history normalisation, unknown services
-- [ ] Inertia JSON with version → 409/HTML fallback → 401/redirect = not logged in
-- [ ] Silent SSO re-login attempt, cookie export for persistence, 5xx → server error
-- [ ] Tests against a local fake site (aiohttp test server)
+- [x] Login-data paste parser (cookie header, cURL bash/cmd/PowerShell, Firefox headers, cookie-editor JSON, cookies.txt)
+- [x] Dutch number parsing, defensive history normalisation, unknown services
+- [x] Inertia JSON with version → 409/HTML fallback → 401/redirect = not logged in
+- [x] Silent SSO re-login attempt, cookie export for persistence, 5xx → server error
+- [x] Tests against a local fake site (aiohttp test server)
 
 ## Phase 3 — Core integration
 - [ ] const.py, `__init__.py` (runtime_data, dedicated ClientSession + CookieJar)

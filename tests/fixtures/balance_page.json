@@ -1,0 +1,55 @@
+{
+  "component": "survey/balance/Index",
+  "version": "945201f29f1ef9549c7fd75a7c3a3cea",
+  "url": "/mijn-containers/saldo",
+  "props": {
+    "errors": {},
+    "auth": {
+      "user": {
+        "id": 4242,
+        "first_name": "Jan",
+        "last_name": "Testpersoon",
+        "email": "jan.testpersoon@example.com",
+        "phone": "+32400000000"
+      }
+    },
+    "flash": {"success": null, "error": null},
+    "features": {"balance": true, "balance_alert": false, "history": true, "refund": true},
+    "balance": {"current_amount": 26.94, "minimum_amount": 5},
+    "showRefundButton": false,
+    "canSettleNegativeBalance": false,
+    "invoicesUrl": "https://winkelmand.antwerpen.be/betalingen",
+    "historyRows": [
+      {"id": "emptying-228580003", "date": "18/11/2026", "date_sort_value": "2026-11-18",
+       "service": "Lediging", "location": "Voorbeeldstraat 1, 2000 Antwerpen",
+       "weight": "8,5 kg", "amount": "1,65 euro",
+       "containerNumber": "0040000000000001", "orderId": "-"},
+      {"id": "emptying-228580002", "date": "04/11/2026", "date_sort_value": "2026-11-04",
+       "service": "Lediging", "location": "Voorbeeldstraat 1, 2000 Antwerpen",
+       "weight": "12,0 kg", "amount": "2,33 euro",
+       "containerNumber": "0040000000000002", "orderId": "-"},
+      {"id": "emptying-228580001", "date": "21/10/2026", "date_sort_value": "2026-10-21",
+       "service": "Lediging", "location": "Voorbeeldstraat 1, 2000 Antwerpen",
+       "weight": "6,4 kg", "amount": "1,24 euro",
+       "containerNumber": "0040000000000001", "orderId": "-"},
+      {"id": "event-111105250", "date": "01/07/2026", "date_sort_value": "2026-07-01",
+       "service": "Leveren", "location": "Voorbeeldstraat 1, 2000 Antwerpen",
+       "weight": "-", "amount": "0,00 euro", "containerNumber": "-", "orderId": "-"},
+      {"id": "110586338", "date": "26/06/2026", "date_sort_value": "2026-06-26",
+       "service": "Provisie", "location": "-", "weight": "-",
+       "amount": "50,00 euro", "containerNumber": "-", "orderId": "ASTD0000000"},
+      {"id": "emptying-228570000", "date": "15/12/2025", "date_sort_value": "2025-12-15",
+       "service": "Lediging", "location": "Voorbeeldstraat 1, 2000 Antwerpen",
+       "weight": "10,0 kg", "amount": "1,94 euro",
+       "containerNumber": "0040000000000001", "orderId": "-"}
+    ],
+    "serviceOptions": [
+      {"value": "lediging", "label": "Lediging"},
+      {"value": "leveren", "label": "Leveren"},
+      {"value": "provisie", "label": "Provisie"}
+    ],
+    "locationOptions": [
+      {"value": "voorbeeldstraat-1-2000-antwerpen", "label": "Voorbeeldstraat 1, 2000 Antwerpen"}
+    ]
+  }
+}
