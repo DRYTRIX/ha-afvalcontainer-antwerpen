@@ -13,7 +13,7 @@ Running checklist. Each phase ends with a commit.
 
 ## Phase 1 — Scaffolding
 - [x] .gitignore, LICENSE (MIT), pyproject (ruff + pytest), requirements_test.txt
-- [x] hacs.json, manifest.json (0.1.0, `<GITHUB_USER>` placeholders)
+- [x] hacs.json, manifest.json (0.1.0; owner `DRYTRIX`, codeowner `@evilguy4000`)
 
 ## Phase 2 — API client (`api.py`, no HA imports)
 - [x] Login-data paste parser (cookie header, cURL bash/cmd/PowerShell, Firefox headers, cookie-editor JSON, cookies.txt)
@@ -55,8 +55,15 @@ Running checklist. Each phase ends with a commit.
       automation; cookie paste stays the only method
 - [x] Personal-data sweep of tracked files and history contents (clean; see note on commit author)
 
+## Phase 7 — Publish (git-flow)
+- [x] Commit authors rewritten to the GitHub noreply address
+- [x] Branches: `main` (releases), `develop` (integration), `feature/*`, `release/*`
+- [x] Repository description and topics set, Issues enabled
+- [x] `release/0.1.0` merged into `main` + `develop`, tag `v0.1.0`, pushed
+- [ ] Publish the GitHub release for `v0.1.0` (the release workflow attaches the zip)
+
 ## Still open (needs a real account or GitHub)
 - [ ] Verify silent SSO re-login with real Keycloak cookies (`scripts/probe --sso`)
 - [ ] Check `/mijn-containers/containers` and `/saldo/export` shapes (`scripts/probe`)
-- [ ] HACS action run (needs the public GitHub repo)
+- [ ] HACS action run (repo pushed; check the Validate workflow)
 - [ ] Replace placeholder screenshots

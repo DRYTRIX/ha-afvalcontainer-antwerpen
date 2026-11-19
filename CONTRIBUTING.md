@@ -10,6 +10,23 @@ street addresses, container numbers or order IDs. Not in code, fixtures, screens
 issues or commit messages. Test fixtures are synthetic (see `tests/fixtures/README.md`).
 To look at the real site structure, use `scripts/probe`: it prints a redacted shape only.
 
+## Branching (git-flow)
+
+| Branch | Purpose |
+|---|---|
+| `main` | Released code only. Every merge into `main` is a release and gets a `vX.Y.Z` tag |
+| `develop` | Integration branch. **Open pull requests against `develop`** |
+| `feature/<name>` | New work, branched from `develop`, merged back with `--no-ff` |
+| `release/X.Y.Z` | Release preparation from `develop`, merged into `main` **and** `develop` |
+| `hotfix/X.Y.Z` | Urgent fix from `main`, merged into `main` **and** `develop` |
+
+```bash
+git switch develop && git pull
+git switch -c feature/my-change
+# ... commit ...
+git push -u origin feature/my-change   # open a PR into develop
+```
+
 ## Setup
 
 Requires Python **3.14** (Home Assistant 2026.x).
