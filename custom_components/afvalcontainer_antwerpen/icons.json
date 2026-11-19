@@ -1,0 +1,26 @@
+{
+  "entity": {
+    "sensor": {
+      "balance": {"default": "mdi:wallet"},
+      "minimum_balance": {"default": "mdi:wallet-outline"},
+      "last_emptying": {"default": "mdi:delete-empty"},
+      "last_emptying_weight": {"default": "mdi:weight-kilogram"},
+      "last_emptying_cost": {"default": "mdi:cash"},
+      "weight_this_year": {"default": "mdi:weight-kilogram"},
+      "weight_this_month": {"default": "mdi:weight-kilogram"},
+      "cost_this_year": {"default": "mdi:cash-multiple"},
+      "cost_this_month": {"default": "mdi:cash"},
+      "emptyings_this_year": {"default": "mdi:counter"},
+      "last_topup": {"default": "mdi:cash-plus"},
+      "history": {"default": "mdi:history"},
+      "container_last_emptying": {"default": "mdi:delete-empty"},
+      "container_weight_this_year": {"default": "mdi:weight-kilogram"}
+    },
+    "binary_sensor": {
+      "low_balance": {"default": "mdi:wallet-outline", "state": {"on": "mdi:alert-circle"}}
+    },
+    "button": {
+      "refresh": {"default": "mdi:refresh"}
+    }
+  }
+}

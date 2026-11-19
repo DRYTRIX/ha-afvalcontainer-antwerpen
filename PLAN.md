@@ -30,11 +30,11 @@ Running checklist. Each phase ends with a commit.
 - [ ] Tests: config flow, coordinator, events
 
 ## Phase 4 — Entities & extras
-- [ ] sensors (balance, minimum, last emptying/weight/cost, year/month totals, emptyings, last top-up, history)
-- [ ] per-container sensors when more than one container
-- [ ] binary_sensor low balance, refresh button
-- [ ] device triggers, diagnostics (redacted), icons.json
-- [ ] Tests
+- [x] sensors (balance, minimum, last emptying/weight/cost, year/month totals, emptyings, last top-up, history)
+- [x] per-container sensors when more than one container
+- [x] binary_sensor low balance, refresh button
+- [x] device triggers, diagnostics (redacted), icons.json
+- [x] Tests
 
 ## Phase 5 — HACS repository polish
 - [ ] Brand icon (original: container + euro), PNG 256/512 + SVG source
