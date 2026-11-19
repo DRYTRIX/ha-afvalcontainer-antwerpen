@@ -1,13 +1,13 @@
 {
   "domain": "afvalcontainer_antwerpen",
   "name": "Afvalcontainer Antwerpen",
-  "codeowners": ["@<GITHUB_USER>"],
+  "codeowners": ["@evilguy4000"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen",
+  "documentation": "https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen/issues",
+  "issue_tracker": "https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/issues",
   "requirements": [],
   "version": "0.1.0"
 }

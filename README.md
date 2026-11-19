@@ -3,8 +3,8 @@
 # Afvalcontainer Antwerpen for Home Assistant
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/)
-[![Validate](https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen/actions/workflows/validate.yml/badge.svg)](https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen/actions/workflows/validate.yml)
-[![Tests](https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen/actions/workflows/tests.yml/badge.svg)](https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen/actions/workflows/tests.yml)
+[![Validate](https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/actions/workflows/validate.yml/badge.svg)](https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/actions/workflows/validate.yml)
+[![Tests](https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/actions/workflows/tests.yml/badge.svg)](https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/actions/workflows/tests.yml)
 
 Shows the **diftar balance** and **emptying history** of your weighed residual-waste
 container(s) from [afvalcontainer.antwerpen.be](https://afvalcontainer.antwerpen.be/mijn-containers/saldo)
@@ -50,10 +50,10 @@ Setup happens entirely in the UI. No YAML is needed.
 
 1. Click this button to add the repository to HACS:
 
-   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=<GITHUB_USER>&repository=ha-afvalcontainer-antwerpen&category=integration)
+   [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=DRYTRIX&repository=ha-afvalcontainer-antwerpen&category=integration)
 
    Or add it by hand: HACS → ⋮ → **Custom repositories** → URL
-   `https://github.com/<GITHUB_USER>/ha-afvalcontainer-antwerpen`, type **Integration**.
+   `https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen`, type **Integration**.
 2. Search for **Afvalcontainer Antwerpen** in HACS and click **Download**.
 3. **Restart Home Assistant.**
 4. Add the integration:
