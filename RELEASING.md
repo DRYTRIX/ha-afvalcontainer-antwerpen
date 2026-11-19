@@ -23,6 +23,7 @@ from `hotfix/X.Y.Z` branched off `main`.
 
 - [ ] `main` is green (Tests + Validate workflows)
 - [ ] `pytest` and `ruff check .` pass locally
+- [ ] `CHANGELOG.md` updated
 - [ ] Translations complete in `strings.json`, `translations/en.json`, `translations/nl.json`
 - [ ] README updated (entities, options, screenshots without personal data)
 - [ ] Bump `version` in `custom_components/afvalcontainer_antwerpen/manifest.json` to the new
