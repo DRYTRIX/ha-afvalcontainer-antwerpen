@@ -9,6 +9,7 @@ license = "MIT"
 target-version = "py314"
 line-length = 100
 extend-exclude = ["config"]
+extend-include = ["scripts/probe"]
 
 [tool.ruff.lint]
 select = [

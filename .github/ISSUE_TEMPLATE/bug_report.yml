@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Never paste cookies, cURL commands, names, e-mail addresses,
+        addresses or container numbers in an issue.** The diagnostics file below is redacted
+        automatically.
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: Settings → About
+      placeholder: "2026.11.2"
+    validations:
+      required: true
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation type
+      options: [Home Assistant OS, Container, Supervised, Core, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Settings → Devices & services → Afvalcontainer Antwerpen → ⋮ → **Download diagnostics**,
+        then drag the file here.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: |
+        Enable debug logging (⋮ → Enable debug logging), reproduce, then disable it again and
+        paste the lines that mention `afvalcontainer_antwerpen`. Check them for personal data.
+      render: text

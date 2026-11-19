@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import tempfile
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from unittest.mock import patch
 
 import aiohttp
@@ -90,15 +90,21 @@ EMAIL = "jan.testpersoon@example.com"
 
 
 @pytest.fixture
-def mock_site(site_server: str, monkeypatch: pytest.MonkeyPatch) -> Generator[None]:
+async def mock_site(site_server: str, monkeypatch: pytest.MonkeyPatch) -> AsyncGenerator[None]:
     """Route the integration (setup and config flow) to the fake site."""
     monkeypatch.setenv(ENV_BASE_URL, APP_URL)
     monkeypatch.setenv(ENV_SSO_URL, SSO_URL)
-    with patch(
-        "custom_components.afvalcontainer_antwerpen.create_session",
-        side_effect=lambda hass: make_session(site_server),
-    ):
+    sessions: list[aiohttp.ClientSession] = []
+
+    def _factory(hass: HomeAssistant, **kwargs: Any) -> aiohttp.ClientSession:
+        sessions.append(make_session(site_server))
+        return sessions[-1]
+
+    with patch("custom_components.afvalcontainer_antwerpen.create_session", side_effect=_factory):
         yield
+    for session in sessions:
+        if not session.closed:
+            await session.close()
 
 
 @pytest.fixture

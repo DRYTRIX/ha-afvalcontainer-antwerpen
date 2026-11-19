@@ -43,6 +43,8 @@ class FakeSite:
     """State of the fake site."""
 
     version: str = VERSION
+    app_url: str = APP_URL
+    sso_url: str = SSO_URL
     valid_sessions: set[str] = field(default_factory=set)
     valid_sso: set[str] = field(default_factory=set)
     balance_page: dict[str, Any] = field(default_factory=lambda: load_fixture("balance_page.json"))
@@ -84,7 +86,7 @@ class FakeSite:
         self.requests.append((host, request.path, bool(request.headers.get("X-Inertia"))))
         if self.fail_with:
             return web.Response(status=self.fail_with, text="error")
-        if host == SSO_HOST:
+        if host == SSO_HOST or request.path.startswith("/auth/realms/"):
             return self._sso(request)
         return self._app(request)
 
@@ -101,8 +103,8 @@ class FakeSite:
             return self._render(request, page)
         if path == "/digipolis/individual/redirect":
             raise web.HTTPFound(
-                f"{SSO_URL}protocol/openid-connect/auth?client_id=slimmeafvalcontainers"
-                f"&redirect_uri={APP_URL}/digipolis/individual/callback&state=x"
+                f"{self.sso_url}protocol/openid-connect/auth?client_id=slimmeafvalcontainers"
+                f"&redirect_uri={self.app_url}/digipolis/individual/callback&state=x"
             )
         if path == "/digipolis/individual/callback":
             response = web.HTTPFound("/mijn-containers")
@@ -128,7 +130,7 @@ class FakeSite:
             request.headers.get("X-Inertia")
             and request.headers.get("X-Inertia-Version") != self.version
         ):
-            raise web.HTTPConflict(headers={"X-Inertia-Location": f"{APP_URL}{path}"})
+            raise web.HTTPConflict(headers={"X-Inertia-Location": f"{self.app_url}{path}"})
         page = dict(pages[path])
         page["version"] = self.version
         response = self._render(request, page)
@@ -141,7 +143,9 @@ class FakeSite:
                 request.cookies.get("dgp.auth.ssokey") in self.valid_sso
             )
             if sso_ok:
-                raise web.HTTPFound(f"{APP_URL}/digipolis/individual/callback?code=abc&state=x")
+                raise web.HTTPFound(
+                    f"{self.app_url}/digipolis/individual/callback?code=abc&state=x"
+                )
             return web.Response(
                 text="<html><title>Log in bij A-Profiel</title><form></form></html>",
                 content_type="text/html",
@@ -156,10 +160,21 @@ def make_app(site: FakeSite) -> web.Application:
     return app
 
 
-if __name__ == "__main__":  # pragma: no cover - manual development helper
-    import sys
+def main() -> None:  # pragma: no cover - manual development helper
+    """Run the fake site on http://localhost:8765 (used by ``scripts/develop --fake``)."""
+    import sys  # noqa: PLC0415
 
-    demo = FakeSite()
-    demo_session = demo.new_session()
-    print(f"Paste this as login data: {SESSION}={demo_session}", file=sys.stderr)  # noqa: T201
-    web.run_app(make_app(demo), host="127.0.0.1", port=8765)
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
+    base = f"http://localhost:{port}"
+    demo = FakeSite(app_url=base, sso_url=f"{base}/auth/realms/a-profiel/")
+    demo.valid_sessions.add("demo-session")
+    print(  # noqa: T201
+        f"Fake site on {base}\nPaste this as login data:  {SESSION}=demo-session",
+        file=sys.stderr,
+        flush=True,
+    )
+    web.run_app(make_app(demo), host="127.0.0.1", port=port, print=None)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

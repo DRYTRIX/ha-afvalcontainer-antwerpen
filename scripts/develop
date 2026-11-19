@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Run a development Home Assistant instance with this integration mounted.
+#
+#   scripts/develop          -> talks to the real afvalcontainer.antwerpen.be
+#   scripts/develop --fake   -> also starts a local fake site (no account needed);
+#                               paste "afvalcontainers-antwerpen-session=demo-session"
+#
+# Home Assistant listens on http://localhost:8123
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+CONFIG="${PWD}/config"
+mkdir -p "${CONFIG}/custom_components"
+ln -sfn "${PWD}/custom_components/afvalcontainer_antwerpen" \
+  "${CONFIG}/custom_components/afvalcontainer_antwerpen"
+
+if [[ "${1:-}" == "--fake" ]]; then
+  python3 -m tests.fake_site 8765 &
+  FAKE_PID=$!
+  trap 'kill ${FAKE_PID} 2>/dev/null || true' EXIT
+  export AFVALCONTAINER_ANTWERPEN_BASE_URL="http://localhost:8765"
+  export AFVALCONTAINER_ANTWERPEN_SSO_URL="http://localhost:8765/auth/realms/a-profiel/"
+fi
+
+hass --config "${CONFIG}" --debug

@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+"""Inspect the real site with your own login data. Prints a REDACTED shape only.
+
+Usage:
+    scripts/probe            # then paste your cURL / Cookie header, end with Ctrl-D
+    scripts/probe --sso      # additionally test silent SSO re-login
+
+Nothing is stored. Only key names, types, counts and HTTP metadata are printed,
+never values, so the output is safe to share in an issue.
+
+Only needs aiohttp (pip install aiohttp); Home Assistant is not required.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import importlib.util
+from pathlib import Path
+import sys
+from typing import Any
+
+import aiohttp
+
+API_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "custom_components"
+    / "afvalcontainer_antwerpen"
+    / "api.py"
+)
+_spec = importlib.util.spec_from_file_location("afv_api", API_PATH)
+api = importlib.util.module_from_spec(_spec)  # type: ignore[arg-type]
+sys.modules["afv_api"] = api
+_spec.loader.exec_module(api)  # type: ignore[union-attr]
+
+
+def shape(node: Any, depth: int = 0, max_depth: int = 4) -> Any:
+    """Replace values by their type, keep structure."""
+    if depth > max_depth:
+        return "…"
+    if isinstance(node, dict):
+        return {k: shape(v, depth + 1, max_depth) for k, v in node.items()}
+    if isinstance(node, list):
+        return [f"list[{len(node)}]", shape(node[0], depth + 1, max_depth)] if node else "list[0]"
+    if isinstance(node, bool) or node is None:
+        return node
+    return type(node).__name__
+
+
+def show(title: str, value: Any) -> None:
+    """Print a titled JSON block."""
+    import json  # noqa: PLC0415
+
+    print(f"\n== {title}")
+    print(json.dumps(value, indent=2, ensure_ascii=False))
+
+
+async def main() -> None:
+    """Run the probe."""
+    test_sso = "--sso" in sys.argv
+    print("Paste your login data, then press Ctrl-D (Ctrl-Z Enter on Windows):", file=sys.stderr)
+    cookies = api.parse_login_data(sys.stdin.read())
+    show("cookies found (names only)", sorted(cookies))
+
+    async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar()) as session:
+        client = api.AfvalcontainerClient(session, cookies)
+        try:
+            data = await client.async_get_balance(allow_sso=False)
+        except api.NotLoggedInError as err:
+            show("balance page", {"logged_in": False, "reason": str(err)})
+            data = None
+        else:
+            show(
+                "balance page",
+                {
+                    "logged_in": True,
+                    "inertia_version_found": bool(client.inertia_version),
+                    "history_rows": len(data.history),
+                    "service_labels": sorted({r.service_label or "-" for r in data.history}),
+                    "containers": len(data.containers),
+                    "has_account_id": data.account.account_id is not None,
+                    "has_first_name": data.account.first_name is not None,
+                },
+            )
+            page = await client._async_get_page(api.BALANCE_PATH, api.BALANCE_COMPONENT)  # noqa: SLF001
+            show("balance props shape", shape(page.get("props"), max_depth=3))
+
+            for path in ("/mijn-containers", api.CONTAINERS_PATH):
+                try:
+                    other = await client._async_get_page(path, None)  # noqa: SLF001
+                except api.AfvalcontainerError as err:
+                    show(path, {"error": type(err).__name__})
+                else:
+                    show(f"{path} ({other.get('component')})", shape(other.get("props")))
+
+            url = f"{api.BASE_URL}{api.BALANCE_PATH}/export"
+            async with session.get(url, headers={"User-Agent": api.USER_AGENT}) as resp:
+                body = await resp.read()
+                show(
+                    "saldo/export",
+                    {
+                        "status": resp.status,
+                        "final_path": resp.url.path,
+                        "content_type": resp.content_type,
+                        "content_disposition": bool(resp.headers.get("Content-Disposition")),
+                        "bytes": len(body),
+                        "starts_with": body[:8].hex(),
+                    },
+                )
+
+        if test_sso:
+            sso_only = {k: v for k, v in cookies.items() if k in api.SSO_COOKIES}
+            show("SSO cookies available", sorted(sso_only))
+            async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar()) as fresh:
+                sso_client = api.AfvalcontainerClient(fresh, sso_only)
+                ok = await sso_client.async_try_sso()
+                result: dict[str, Any] = {"sso_flow_returned_to_app": ok}
+                if ok:
+                    try:
+                        await sso_client.async_get_balance(allow_sso=False)
+                        result["balance_after_sso"] = "OK"
+                    except api.AfvalcontainerError as err:
+                        result["balance_after_sso"] = type(err).__name__
+                show("silent SSO re-login (without the app session cookie)", result)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

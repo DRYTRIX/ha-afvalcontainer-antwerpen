@@ -68,13 +68,14 @@ async def async_validate_login_data(hass: HomeAssistant, text: str) -> Validated
     from . import create_session  # noqa: PLC0415
 
     cookies = parse_login_data(text)
-    session = create_session(hass)
+    # Not tied to a config entry, so it is cleaned up explicitly below.
+    session = create_session(hass, auto_cleanup=False)
     try:
         client = AfvalcontainerClient(session, cookies, endpoints=get_endpoints())
         data = await client.async_get_balance()
         return ValidatedLogin(client.export_cookies() or cookies, client.inertia_version, data)
     finally:
-        await session.close()
+        session.detach()
 
 
 def entry_title(data: BalanceData) -> str:

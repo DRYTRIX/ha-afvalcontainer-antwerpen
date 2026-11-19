@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Problem with your balance, invoices or a container itself
+    url: https://www.antwerpen.be/
+    about: This integration is unofficial. Contact Stad Antwerpen for account or container issues.

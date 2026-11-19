@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Original artwork for this integration: wheelie bin + euro badge. -->
+  <rect x="216" y="70" width="80" height="34" rx="10" fill="#1B5E20"/>
+  <rect x="96" y="92" width="320" height="48" rx="16" fill="#1B5E20"/>
+  <polygon points="112,150 400,150 376,440 136,440" fill="#2E7D32"/>
+  <rect x="150" y="170" width="14" height="250" rx="7" fill="#388E3C"/>
+  <rect x="348" y="170" width="14" height="250" rx="7" fill="#388E3C"/>
+  <circle cx="160" cy="450" r="34" fill="#263238"/>
+  <circle cx="160" cy="450" r="12" fill="#90A4AE"/>
+  <circle cx="352" cy="450" r="34" fill="#263238"/>
+  <circle cx="352" cy="450" r="12" fill="#90A4AE"/>
+  <circle cx="256" cy="290" r="96" fill="#FFC107"/>
+  <path d="M 312.4 252.7 A 58 58 0 1 0 312.4 327.3" fill="none" stroke="#3E2723" stroke-width="22"/>
+  <rect x="180" y="253" width="100" height="18" fill="#3E2723"/>
+  <rect x="180" y="309" width="100" height="18" fill="#3E2723"/>
+</svg>

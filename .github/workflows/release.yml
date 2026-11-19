@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and attach zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set version in manifest.json from the tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG#v}"
+          python3 - "$version" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          version = sys.argv[1]
+          if not re.fullmatch(r"\d+\.\d+\.\d+(?:[-.]?(?:a|b|rc|beta|alpha)\.?\d+)?", version):
+              sys.exit(f"Tag {version!r} is not a SemVer version")
+          path = Path("custom_components/afvalcontainer_antwerpen/manifest.json")
+          manifest = json.loads(path.read_text())
+          manifest["version"] = version
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          print(f"manifest version -> {version}")
+          PY
+
+      - name: Build zip (integration files at the zip root, as HACS expects)
+        run: |
+          cd custom_components/afvalcontainer_antwerpen
+          zip -r "$GITHUB_WORKSPACE/afvalcontainer_antwerpen.zip" . -x "__pycache__/*" "*.pyc"
+
+      - name: Attach zip to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" afvalcontainer_antwerpen.zip --clobber

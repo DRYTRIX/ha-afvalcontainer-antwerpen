@@ -37,10 +37,10 @@ Running checklist. Each phase ends with a commit.
 - [x] Tests
 
 ## Phase 5 — HACS repository polish
-- [ ] Brand icon (original: container + euro), PNG 256/512 + SVG source
-- [ ] GitHub Actions: validate (HACS + hassfest), tests, release (zip + version from tag), Dependabot
-- [ ] Issue/PR templates, CONTRIBUTING.md, README.md, RELEASING.md
-- [ ] Devcontainer + scripts/develop, scripts/setup, scripts/lint
+- [x] Brand icon (original: container + euro), PNG 256/512 + SVG source
+- [x] GitHub Actions: validate (HACS + hassfest), tests, release (zip + version from tag), Dependabot
+- [x] Issue/PR templates, CONTRIBUTING.md, README.md, RELEASING.md
+- [x] Devcontainer + scripts/develop, scripts/setup, scripts/lint
 
 ## Phase 6 — Verification & optional research
 - [ ] Run a dev HA instance with the integration, add it through the UI (with the fake site / real cookies)

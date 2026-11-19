@@ -1,0 +1,7 @@
+# Development configuration used by scripts/develop.
+default_config:
+
+logger:
+  default: info
+  logs:
+    custom_components.afvalcontainer_antwerpen: debug
