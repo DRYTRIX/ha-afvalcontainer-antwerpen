@@ -1,3 +1,5 @@
+<!-- Pull requests target `develop` (git-flow). Only release/hotfix branches merge into `main`. -->
+
 ## What does this change?
 
 <!-- Short description. Link the issue if there is one: Fixes #123 -->
