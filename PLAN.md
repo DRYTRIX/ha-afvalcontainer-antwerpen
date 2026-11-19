@@ -60,10 +60,11 @@ Running checklist. Each phase ends with a commit.
 - [x] Branches: `main` (releases), `develop` (integration), `feature/*`, `release/*`
 - [x] Repository description and topics set, Issues enabled
 - [x] `release/0.1.0` merged into `main` + `develop`, tag `v0.1.0`, pushed
-- [ ] Publish the GitHub release for `v0.1.0` (the release workflow attaches the zip)
+- [x] GitHub release `v0.1.0` published; release workflow attached `afvalcontainer_antwerpen.zip`
 
 ## Still open (needs a real account or GitHub)
 - [ ] Verify silent SSO re-login with real Keycloak cookies (`scripts/probe --sso`)
 - [ ] Check `/mijn-containers/containers` and `/saldo/export` shapes (`scripts/probe`)
-- [ ] HACS action run (repo pushed; check the Validate workflow)
-- [ ] Replace placeholder screenshots
+- [x] HACS action run: Validate workflow green on main, develop and v0.1.0
+- [x] Real screenshots (real account: balance, history and per-container sensors work)
+- [ ] Container labels fall back to `…XXXX` on the real site: containers-page shape needed (`scripts/probe`)
