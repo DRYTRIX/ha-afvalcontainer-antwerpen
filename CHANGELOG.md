@@ -3,6 +3,11 @@
 All notable changes to this project are documented here. Versions follow
 [SemVer](https://semver.org/).
 
+## [0.1.1] - 2026-11-19
+
+### Changed
+- README screenshots now come from a real installation instead of placeholders.
+
 ## [0.1.0] - 2026-11-19
 
 First release.
@@ -19,4 +24,5 @@ First release.
 - Events `afvalcontainer_antwerpen_new_emptying` / `_new_topup` and matching device triggers.
 - Redacted diagnostics, Dutch and English translations, local brand icon.
 
+[0.1.1]: https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/releases/tag/v0.1.1
 [0.1.0]: https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/releases/tag/v0.1.0
