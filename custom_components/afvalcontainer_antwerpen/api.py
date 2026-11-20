@@ -171,26 +171,41 @@ def parse_login_data(text: str) -> dict[str, str]:
     return found
 
 
+def iter_json_cookies(text: str) -> list[Mapping[str, Any]]:
+    """Return the cookie objects of one or more JSON exports pasted after each other.
+
+    Cookie-editor extensions export one site at a time, so users often paste two
+    arrays (app domain + SSO domain) back to back.
+    """
+    decoder = json.JSONDecoder()
+    items: list[Mapping[str, Any]] = []
+    pos, end = 0, len(text)
+    while pos < end:
+        while pos < end and (text[pos].isspace() or text[pos] == ","):
+            pos += 1
+        if pos >= end or text[pos] not in "[{":
+            break
+        try:
+            data, pos = decoder.raw_decode(text, pos)
+        except ValueError:
+            break
+        if isinstance(data, dict):
+            if isinstance(data.get("cookies"), list):
+                data = data["cookies"]
+            elif data and all(isinstance(v, str) for v in data.values()):
+                data = [{"name": k, "value": v} for k, v in data.items()]
+            else:
+                data = [data]
+        if isinstance(data, list):
+            items.extend(item for item in data if isinstance(item, Mapping))
+    return items
+
+
 def _from_json(text: str) -> Iterable[tuple[str, str]]:
     if text[0] not in "[{":
         return []
-    try:
-        data = json.loads(text)
-    except ValueError:
-        return []
-    if isinstance(data, dict):
-        if isinstance(data.get("cookies"), list):
-            data = data["cookies"]
-        elif all(isinstance(v, str) for v in data.values()):
-            return list(data.items())
-        else:
-            data = [data]
     pairs: list[tuple[str, str]] = []
-    if not isinstance(data, list):
-        return pairs
-    for item in data:
-        if not isinstance(item, Mapping):
-            continue
+    for item in iter_json_cookies(text):
         name = item.get("name", item.get("Name"))
         value = item.get("value", item.get("Value"))
         domain = str(item.get("domain", item.get("Domain", "")) or "")

@@ -13,6 +13,11 @@ All notable changes to this project are documented here. Versions follow
   The same timing is in the diagnostics (`session`).
 - `scripts/probe` shows cookie lifetimes (no values), including those in a cookie-editor export.
 
+### Fixed
+- Pasting two cookie-editor JSON exports after each other (app site + A-profiel) works.
+- `scripts/probe` starts when run directly (it uses the repository virtualenv when the system
+  Python has no aiohttp) and prints a clear message instead of a traceback for unusable input.
+
 ## [0.1.1] - 2026-11-19
 
 ### Changed

@@ -160,6 +160,25 @@ async def test_remember_cookie_round_trips_through_jar(endpoints: Endpoints) -> 
         assert client.export_cookies() == {REMEMBER: "rem1"}
 
 
+def test_parse_login_data_two_cookie_editor_exports_back_to_back() -> None:
+    app = json.dumps(
+        [
+            {
+                "name": "afvalcontainers-antwerpen-session",
+                "value": "s1",
+                "domain": "afvalcontainer.antwerpen.be",
+            }
+        ]
+    )
+    sso = json.dumps(
+        [{"name": "KEYCLOAK_IDENTITY", "value": "kc1", "domain": "authentication.antwerpen.be"}],
+        indent=2,
+    )
+    expected = {"afvalcontainers-antwerpen-session": "s1", "KEYCLOAK_IDENTITY": "kc1"}
+    assert parse_login_data(f"{app}\n{sso}\n") == expected
+    assert parse_login_data(f"{sso}{app}") == expected
+
+
 def test_parse_login_data_does_not_match_header_names() -> None:
     with pytest.raises(InvalidLoginDataError):
         parse_login_data("X-XSRF-TOKEN: abc\nmy-afvalcontainers-antwerpen-session=nope")
