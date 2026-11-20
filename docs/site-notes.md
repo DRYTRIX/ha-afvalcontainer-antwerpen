@@ -39,7 +39,15 @@ host-only cookies for `authentication.antwerpen.be`, path
 contain them (different host). `dgp.auth.ssokey` (`.antwerpen.be`) is still
 accepted and sent if present, but it was not observed during this check.
 
-**Silent re-login: implemented, not verified with a real account.** The flow
+**Silent re-login: verified 2026-11-20** with only `KEYCLOAK_IDENTITY`,
+`KEYCLOAK_SESSION`, `AUTH_SESSION_ID` and `dgp.auth.ssokey` (no app session cookie):
+the flow returned to the app and the balance page loaded. Lifetimes seen right after a
+login: `KEYCLOAK_SESSION` 12 h (= Keycloak *SSO Session Max*), `KEYCLOAK_IDENTITY` and
+`AUTH_SESSION_ID` browser-session cookies. So silent re-login works for at most ~12 h after
+the itsme login; the SSO idle timeout is still unknown. A cookie-editor export only lists
+the `KEYCLOAK_*` cookies on a page under `/auth/realms/a-profiel/`.
+
+Original note: the flow
 `/digipolis/individual/redirect → Keycloak auth → /digipolis/individual/callback`
 creates a new app session without user interaction *if* Keycloak still has a
 valid SSO session cookie in our jar. That only happens when the user pasted the

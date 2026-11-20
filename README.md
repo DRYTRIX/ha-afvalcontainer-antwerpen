@@ -111,6 +111,18 @@ about a minute.
 - Just the `Cookie:` header value (`afvalcontainers-antwerpen-session=…; XSRF-TOKEN=…`)
 - A JSON export from a cookie-editor browser extension, or a `cookies.txt` file
 
+**Optional, fewer re-logins:** also paste the A-profiel login cookies. With those, the
+integration logs itself back in when the website session ends, without itsme, for as long
+as your A-profiel login is valid (about 12 hours after you logged in). A "Copy as cURL" never
+contains them. Use a cookie-editor extension:
+
+1. Log in at afvalcontainer.antwerpen.be.
+2. In the same browser, open
+   `https://authentication.antwerpen.be/auth/realms/a-profiel/account` (the cookies only show
+   up on that path) and **Export → JSON**.
+3. Paste that export, optionally followed by the export of afvalcontainer.antwerpen.be,
+   into Home Assistant.
+
 Whatever you paste, the integration keeps only `afvalcontainers-antwerpen-session`,
 `XSRF-TOKEN`, the site's "remember me" cookie (`remember_web_…`) if it has one, and the
 A-profiel SSO cookies (`dgp.auth.ssokey`, `KEYCLOAK_*`, `AUTH_SESSION_ID`). Everything else is thrown away before anything is stored.
