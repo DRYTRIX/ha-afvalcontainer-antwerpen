@@ -58,6 +58,24 @@ timing of every session loss to tell these apart.
 To verify, run `scripts/probe --sso` with a cookie-editor export that includes
 the `authentication.antwerpen.be` cookies.
 
+## Verified with a real account (2026-11-20, `scripts/probe`)
+
+* `props.auth.user`: `email`, `first_name`, `last_name`, `full_name`, `telephone`,
+  `company_name`, `company_type`, `type`. No numeric id; the hashed email is the unique id.
+* Balance page props: `balance.current_amount` (float), `balance.minimum_amount` (int),
+  `invoicesUrl`, `features`, `historyRows` (`id`, `date`, `date_sort_value`, `service`,
+  `location`, `weight`, `amount`, `containerNumber`, `orderId`), `historyColumns`,
+  `serviceOptions`, `locationOptions`, `supported_fractions` (key → label).
+  Service labels seen: `Lediging`, `Leveren`, `Provisie`.
+* `/mijn-containers/containers` (`survey/containers/Index`): `addresses[]` with `id`, `label`
+  and only **counts** per address (`containers.total`, …). Container details are expected on
+  `/mijn-containers/containers/{id}` (Ziggy `linked-address.show`); its shape is not yet seen.
+* `/mijn-containers/saldo/export`: `200 text/csv` attachment, `;`-separated, starts with
+  `Datum;`. Same data as `historyRows`, so not used.
+* Cookies: the app sets only `afvalcontainers-antwerpen-session` and `XSRF-TOKEN`
+  (Max-Age 7200). **No Laravel remember-me cookie.** `dgp.auth.ssokey` on `.antwerpen.be`
+  lives ~6 months, but on its own it does **not** give a silent re-login.
+
 ## Not verified (needs an account)
 
 * Exact shape of `props.auth.user` (the parser accepts `email`/`id` and

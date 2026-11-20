@@ -145,6 +145,7 @@ async def main() -> None:
             show("balance props shape", shape(page.get("props"), max_depth=3))
             show("cookies set by the site (lifetimes only)", jar_lifetimes(session))
 
+            overview: dict[str, Any] = {}
             for path in ("/mijn-containers", api.CONTAINERS_PATH):
                 try:
                     other = await client._async_get_page(path, None)  # noqa: SLF001
@@ -152,6 +153,33 @@ async def main() -> None:
                     show(path, {"error": type(err).__name__})
                 else:
                     show(f"{path} ({other.get('component')})", shape(other.get("props")))
+                    overview = other
+
+            for index, address_id in enumerate(api.linked_address_ids(overview), 1):
+                path = f"{api.CONTAINERS_PATH}/{address_id}"
+                title = f"{api.CONTAINERS_PATH}/<address {index}>"
+                try:
+                    detail = await client._async_get_page(path, None)  # noqa: SLF001
+                except api.AfvalcontainerError as err:
+                    show(title, {"error": type(err).__name__})
+                    continue
+                show(
+                    f"{title} ({detail.get('component')})", shape(detail.get("props"), max_depth=6)
+                )
+                probe_data = api.parse_balance_page(page)
+                api.enrich_containers(probe_data.containers, detail)
+                show(
+                    f"{title}: containers recognised",
+                    {
+                        f"container {n}": {
+                            "number_found_on_page": info.fraction is not None
+                            or info.volume is not None,
+                            "fraction_found": info.fraction is not None,
+                            "volume_found": info.volume is not None,
+                        }
+                        for n, info in enumerate(probe_data.containers.values(), 1)
+                    },
+                )
 
             try:
                 url = f"{api.BASE_URL}{api.BALANCE_PATH}/export"
