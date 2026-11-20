@@ -14,6 +14,9 @@ All notable changes to this project are documented here. Versions follow
 - `scripts/probe` shows cookie lifetimes (no values), including those in a cookie-editor export.
 
 ### Fixed
+- Container labels (e.g. "Restafval 120 l"): the overview page only has counts, so the
+  integration now also reads the page of each linked address, and maps fraction keys such as
+  `residual_waste` to their Dutch label.
 - Pasting two cookie-editor JSON exports after each other (app site + A-profiel) works.
 - `scripts/probe` starts when run directly (it uses the repository virtualenv when the system
   Python has no aiohttp) and prints a clear message instead of a traceback for unusable input.

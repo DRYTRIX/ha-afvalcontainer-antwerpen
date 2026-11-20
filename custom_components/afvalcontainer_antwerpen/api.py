@@ -23,6 +23,7 @@ import json
 import logging
 import re
 from typing import Any, Final
+from urllib.parse import quote
 
 import aiohttp
 from yarl import URL
@@ -541,7 +542,34 @@ def enrich_containers(containers: Mapping[str, ContainerInfo], page: Mapping[str
             for value in node:
                 walk(value, depth + 1)
 
-    walk(page.get("props"))
+    props = page.get("props")
+    walk(props)
+    # Fractions may be keys such as "residual_waste"; the page maps them to labels.
+    labels = props.get("supported_fractions") if isinstance(props, Mapping) else None
+    if isinstance(labels, Mapping):
+        for info in containers.values():
+            label = labels.get(info.fraction) if info.fraction else None
+            if isinstance(label, str) and label.strip():
+                info.fraction = label.strip()
+
+
+def linked_address_ids(page: Mapping[str, Any], limit: int = 5) -> list[str]:
+    """IDs of the linked addresses on the containers overview page."""
+    props = page.get("props")
+    if not isinstance(props, Mapping):
+        return []
+    ids: list[str] = []
+    for key in ("addresses", "linkedAddresses"):
+        items = props.get(key)
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            value = item.get("id") if isinstance(item, Mapping) else None
+            if isinstance(value, str | int) and not isinstance(value, bool):
+                text = str(value).strip()
+                if text and text not in ids:
+                    ids.append(text)
+    return ids[:limit]
 
 
 def _first_scalar(node: Mapping[str, Any], keys: Iterable[str]) -> str | None:
@@ -653,8 +681,26 @@ class AfvalcontainerClient:
         return parse_balance_page(page)
 
     async def async_get_containers_page(self) -> dict[str, Any]:
-        """Fetch the containers page (used for optional metadata)."""
+        """Fetch the containers overview page (used for optional metadata)."""
         return await self._async_get_page(CONTAINERS_PATH, None)
+
+    async def async_get_container_pages(self) -> list[dict[str, Any]]:
+        """Fetch the containers overview and the page of every linked address.
+
+        The overview only has counts per address; the containers themselves
+        (fraction, volume, number) are on ``/mijn-containers/containers/{id}``.
+        """
+        overview = await self.async_get_containers_page()
+        pages = [overview]
+        for address_id in linked_address_ids(overview):
+            path = f"{CONTAINERS_PATH}/{quote(address_id, safe='')}"
+            try:
+                pages.append(await self._async_get_page(path, None))
+            except NotLoggedInError:
+                raise
+            except AfvalcontainerError as err:
+                _LOGGER.debug("Linked address page not available: %s", err)
+        return pages
 
     async def async_try_sso(self) -> bool:
         """Try to create a new app session through the A-profiel SSO without a password.

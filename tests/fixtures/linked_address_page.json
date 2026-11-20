@@ -1,0 +1,41 @@
+{
+  "component": "survey/containers/Show",
+  "version": "945201f29f1ef9549c7fd75a7c3a3cea",
+  "url": "/mijn-containers/containers/addr-0001",
+  "props": {
+    "auth": {
+      "user": {
+        "email": "jan.testpersoon@example.com",
+        "first_name": "Jan",
+        "last_name": "Testpersoon",
+        "full_name": "Jan Testpersoon",
+        "telephone": "+32400000000",
+        "company_name": null,
+        "company_type": null,
+        "type": "individual"
+      }
+    },
+    "supported_fractions": {
+      "residual_waste": "Restafval",
+      "company_residual_waste": "Bedrijfsrestafval",
+      "paper_and_cardboard": "Papier en karton",
+      "pmd": "PMD"
+    },
+    "address": {
+      "id": "addr-0001",
+      "label": "Voorbeeldstraat 1, 2000 Antwerpen"
+    },
+    "containers": [
+      {
+        "number": "0040000000000001",
+        "fraction": "residual_waste",
+        "volume": "120 l"
+      },
+      {
+        "number": "0040000000000002",
+        "fraction": "residual_waste",
+        "volume": "240 l"
+      }
+    ]
+  }
+}

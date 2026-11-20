@@ -195,11 +195,12 @@ class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
         ):
             self._containers_fetched = now
             try:
-                page = await self.client.async_get_containers_page()
+                pages = await self.client.async_get_container_pages()
             except AfvalcontainerError as err:
                 LOGGER.debug("Containers page not available: %s", err)
             else:
-                enrich_containers(data.containers, page)
+                for page in pages:
+                    enrich_containers(data.containers, page)
                 self._container_cache = {
                     number: ContainerInfo(number, info.fraction, info.volume)
                     for number, info in data.containers.items()
