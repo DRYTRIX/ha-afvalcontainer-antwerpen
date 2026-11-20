@@ -1,18 +1,46 @@
 {
-  "component": "survey/my-containers/containers/Index",
+  "component": "survey/containers/Index",
   "version": "945201f29f1ef9549c7fd75a7c3a3cea",
   "url": "/mijn-containers/containers",
   "props": {
-    "auth": {"user": {"id": 4242, "first_name": "Jan", "email": "jan.testpersoon@example.com"}},
-    "linkedAddresses": [
-      {
-        "id": 1,
-        "address": "Voorbeeldstraat 1, 2000 Antwerpen",
-        "containers": [
-          {"number": "0040000000000001", "fraction": {"value": "residual_waste", "label": "Restafval"}, "volume": "120 l"},
-          {"number": "0040000000000002", "fraction": {"value": "residual_waste", "label": "Restafval"}, "volume": "240 l"}
-        ]
+    "auth": {
+      "user": {
+        "email": "jan.testpersoon@example.com",
+        "first_name": "Jan",
+        "last_name": "Testpersoon",
+        "full_name": "Jan Testpersoon",
+        "telephone": "+32400000000",
+        "company_name": null,
+        "company_type": null,
+        "type": "individual"
       }
-    ]
+    },
+    "supported_fractions": {
+      "residual_waste": "Restafval",
+      "company_residual_waste": "Bedrijfsrestafval",
+      "paper_and_cardboard": "Papier en karton",
+      "pmd": "PMD"
+    },
+    "addresses": [
+      {
+        "id": "addr-0001",
+        "label": "Voorbeeldstraat 1, 2000 Antwerpen",
+        "termination_requested": false,
+        "containers": {
+          "total": 2,
+          "blocked": 0,
+          "collect_requested": 0,
+          "replace_requested": 0,
+          "defect_or_theft_reported": 0,
+          "extra_requested": 0,
+          "being_delivered": 0
+        },
+        "pending_requests": {
+          "deliveries": [],
+          "collections": []
+        }
+      }
+    ],
+    "addressClaims": []
   }
 }

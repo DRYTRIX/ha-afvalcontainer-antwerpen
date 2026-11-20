@@ -23,6 +23,7 @@ import json
 import logging
 import re
 from typing import Any, Final
+from urllib.parse import quote
 
 import aiohttp
 from yarl import URL
@@ -54,6 +55,21 @@ KEYCLOAK_COOKIES: Final = (
 APP_COOKIES: Final = (SESSION_COOKIE, XSRF_COOKIE)
 SSO_COOKIES: Final = (DGP_SSO_COOKIE, *KEYCLOAK_COOKIES)
 ALLOWED_COOKIES: Final = (*APP_COOKIES, *SSO_COOKIES)
+# Laravel "remember me" cookie: remember_<guard>_<sha1>. Lets the site log the
+# user back in after the 2 h session cookie expired, if the site issues it.
+_REMEMBER_COOKIE_PATTERN: Final = r"remember_[a-z]+_[0-9a-f]{40}"
+_REMEMBER_COOKIE_RE = re.compile(_REMEMBER_COOKIE_PATTERN)
+
+
+def is_allowed_cookie(name: str) -> bool:
+    """Return True for the cookies this integration keeps."""
+    return name in ALLOWED_COOKIES or _REMEMBER_COOKIE_RE.fullmatch(name) is not None
+
+
+def is_remember_cookie(name: str) -> bool:
+    """Return True for a Laravel remember-me cookie."""
+    return _REMEMBER_COOKIE_RE.fullmatch(name) is not None
+
 
 USER_AGENT: Final = "Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0"
 DEFAULT_TIMEOUT: Final = 30.0
@@ -120,7 +136,10 @@ _PS_COOKIE_RE = re.compile(
 )
 _ALLOWED_PAIR_RE = re.compile(
     r"(?<![\w.%-])("
-    + "|".join(re.escape(name) for name in sorted(ALLOWED_COOKIES, key=len, reverse=True))
+    + "|".join(
+        [_REMEMBER_COOKIE_PATTERN]
+        + [re.escape(name) for name in sorted(ALLOWED_COOKIES, key=len, reverse=True)]
+    )
     + r")=([^;,\s'\"\\]+)"
 )
 
@@ -142,35 +161,52 @@ def parse_login_data(text: str) -> dict[str, str]:
     if text:
         for extractor in (_from_json, _from_powershell, _from_netscape, _from_text):
             for name, value in extractor(text):
-                if name in ALLOWED_COOKIES and value and name not in found:
+                if is_allowed_cookie(name) and value and name not in found:
                     found[name] = value
             if SESSION_COOKIE in found:
                 break
-    if SESSION_COOKIE not in found and not any(name in found for name in SSO_COOKIES):
+    if SESSION_COOKIE not in found and not any(
+        name in SSO_COOKIES or is_remember_cookie(name) for name in found
+    ):
         raise InvalidLoginDataError("No afvalcontainer session cookie found in the pasted data")
     return found
+
+
+def iter_json_cookies(text: str) -> list[Mapping[str, Any]]:
+    """Return the cookie objects of one or more JSON exports pasted after each other.
+
+    Cookie-editor extensions export one site at a time, so users often paste two
+    arrays (app domain + SSO domain) back to back.
+    """
+    decoder = json.JSONDecoder()
+    items: list[Mapping[str, Any]] = []
+    pos, end = 0, len(text)
+    while pos < end:
+        while pos < end and (text[pos].isspace() or text[pos] == ","):
+            pos += 1
+        if pos >= end or text[pos] not in "[{":
+            break
+        try:
+            data, pos = decoder.raw_decode(text, pos)
+        except ValueError:
+            break
+        if isinstance(data, dict):
+            if isinstance(data.get("cookies"), list):
+                data = data["cookies"]
+            elif data and all(isinstance(v, str) for v in data.values()):
+                data = [{"name": k, "value": v} for k, v in data.items()]
+            else:
+                data = [data]
+        if isinstance(data, list):
+            items.extend(item for item in data if isinstance(item, Mapping))
+    return items
 
 
 def _from_json(text: str) -> Iterable[tuple[str, str]]:
     if text[0] not in "[{":
         return []
-    try:
-        data = json.loads(text)
-    except ValueError:
-        return []
-    if isinstance(data, dict):
-        if isinstance(data.get("cookies"), list):
-            data = data["cookies"]
-        elif all(isinstance(v, str) for v in data.values()):
-            return list(data.items())
-        else:
-            data = [data]
     pairs: list[tuple[str, str]] = []
-    if not isinstance(data, list):
-        return pairs
-    for item in data:
-        if not isinstance(item, Mapping):
-            continue
+    for item in iter_json_cookies(text):
         name = item.get("name", item.get("Name"))
         value = item.get("value", item.get("Value"))
         domain = str(item.get("domain", item.get("Domain", "")) or "")
@@ -506,7 +542,34 @@ def enrich_containers(containers: Mapping[str, ContainerInfo], page: Mapping[str
             for value in node:
                 walk(value, depth + 1)
 
-    walk(page.get("props"))
+    props = page.get("props")
+    walk(props)
+    # Fractions may be keys such as "residual_waste"; the page maps them to labels.
+    labels = props.get("supported_fractions") if isinstance(props, Mapping) else None
+    if isinstance(labels, Mapping):
+        for info in containers.values():
+            label = labels.get(info.fraction) if info.fraction else None
+            if isinstance(label, str) and label.strip():
+                info.fraction = label.strip()
+
+
+def linked_address_ids(page: Mapping[str, Any], limit: int = 5) -> list[str]:
+    """IDs of the linked addresses on the containers overview page."""
+    props = page.get("props")
+    if not isinstance(props, Mapping):
+        return []
+    ids: list[str] = []
+    for key in ("addresses", "linkedAddresses"):
+        items = props.get(key)
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            value = item.get("id") if isinstance(item, Mapping) else None
+            if isinstance(value, str | int) and not isinstance(value, bool):
+                text = str(value).strip()
+                if text and text not in ids:
+                    ids.append(text)
+    return ids[:limit]
 
 
 def _first_scalar(node: Mapping[str, Any], keys: Iterable[str]) -> str | None:
@@ -563,6 +626,8 @@ class AfvalcontainerClient:
         self._sso = URL(self._endpoints.sso_url)
         self._timeout = aiohttp.ClientTimeout(total=timeout)
         self.inertia_version = inertia_version
+        # Outcome of the last silent SSO attempt: None, "succeeded" or "failed".
+        self.last_sso_result: str | None = None
         if cookies:
             self.set_cookies(cookies)
 
@@ -571,7 +636,7 @@ class AfvalcontainerClient:
         """Seed the cookie jar with (whitelisted) cookies."""
         parent = _parent_domain(self._base.host)
         for name, value in cookies.items():
-            if name not in ALLOWED_COOKIES or not value:
+            if not is_allowed_cookie(name) or not value:
                 continue
             morsels: SimpleCookie = SimpleCookie()
             morsels[name] = value
@@ -590,7 +655,7 @@ class AfvalcontainerClient:
         result: dict[str, str] = {}
         for url in (self._base.join(URL(BALANCE_PATH)), self._sso):
             for name, morsel in self._session.cookie_jar.filter_cookies(url).items():
-                if name in ALLOWED_COOKIES and morsel.value:
+                if is_allowed_cookie(name) and morsel.value:
                     result[name] = morsel.value
         return result
 
@@ -608,13 +673,34 @@ class AfvalcontainerClient:
                 raise
             _LOGGER.debug("Session not logged in, trying silent SSO re-login")
             if not await self.async_try_sso():
+                self.last_sso_result = "failed"
                 raise
+            self.last_sso_result = "succeeded"
+            _LOGGER.info("Session expired; logged in again through the A-profiel SSO")
             page = await self._async_get_page(BALANCE_PATH, BALANCE_COMPONENT)
         return parse_balance_page(page)
 
     async def async_get_containers_page(self) -> dict[str, Any]:
-        """Fetch the containers page (used for optional metadata)."""
+        """Fetch the containers overview page (used for optional metadata)."""
         return await self._async_get_page(CONTAINERS_PATH, None)
+
+    async def async_get_container_pages(self) -> list[dict[str, Any]]:
+        """Fetch the containers overview and the page of every linked address.
+
+        The overview only has counts per address; the containers themselves
+        (fraction, volume, number) are on ``/mijn-containers/containers/{id}``.
+        """
+        overview = await self.async_get_containers_page()
+        pages = [overview]
+        for address_id in linked_address_ids(overview):
+            path = f"{CONTAINERS_PATH}/{quote(address_id, safe='')}"
+            try:
+                pages.append(await self._async_get_page(path, None))
+            except NotLoggedInError:
+                raise
+            except AfvalcontainerError as err:
+                _LOGGER.debug("Linked address page not available: %s", err)
+        return pages
 
     async def async_try_sso(self) -> bool:
         """Try to create a new app session through the A-profiel SSO without a password.

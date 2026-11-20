@@ -22,6 +22,7 @@ from custom_components.afvalcontainer_antwerpen.api import (
     ServerError,
     enrich_containers,
     hash_account_id,
+    linked_address_ids,
     parse_balance_page,
     parse_dutch_number,
     parse_inertia_html,
@@ -139,6 +140,44 @@ def test_parse_login_data_keeps_sso_cookies_only_from_whitelist() -> None:
         }
     )
     assert parse_login_data(pasted) == {"dgp.auth.ssokey": "sso1", "KEYCLOAK_IDENTITY": "kc1"}
+
+
+REMEMBER = "remember_web_0123456789abcdef0123456789abcdef01234567"
+
+
+def test_parse_login_data_keeps_laravel_remember_cookie() -> None:
+    pasted = f"Cookie: {REMEMBER}=rem1; afvalcontainers-antwerpen-session=s1; _ga=x"
+    assert parse_login_data(pasted) == {REMEMBER: "rem1", "afvalcontainers-antwerpen-session": "s1"}
+    # A remember cookie alone is enough to try logging in.
+    assert parse_login_data(f"{REMEMBER}=rem1") == {REMEMBER: "rem1"}
+    # Lookalikes are not kept.
+    with pytest.raises(InvalidLoginDataError):
+        parse_login_data("remember_web_short=rem1")
+
+
+async def test_remember_cookie_round_trips_through_jar(endpoints: Endpoints) -> None:
+    async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True)) as session:
+        client = AfvalcontainerClient(session, {REMEMBER: "rem1"}, endpoints=endpoints)
+        assert client.export_cookies() == {REMEMBER: "rem1"}
+
+
+def test_parse_login_data_two_cookie_editor_exports_back_to_back() -> None:
+    app = json.dumps(
+        [
+            {
+                "name": "afvalcontainers-antwerpen-session",
+                "value": "s1",
+                "domain": "afvalcontainer.antwerpen.be",
+            }
+        ]
+    )
+    sso = json.dumps(
+        [{"name": "KEYCLOAK_IDENTITY", "value": "kc1", "domain": "authentication.antwerpen.be"}],
+        indent=2,
+    )
+    expected = {"afvalcontainers-antwerpen-session": "s1", "KEYCLOAK_IDENTITY": "kc1"}
+    assert parse_login_data(f"{app}\n{sso}\n") == expected
+    assert parse_login_data(f"{sso}{app}") == expected
 
 
 def test_parse_login_data_does_not_match_header_names() -> None:
@@ -272,6 +311,8 @@ def test_parse_inertia_html_variants() -> None:
 def test_enrich_containers() -> None:
     data = parse_balance_page(load_fixture("balance_page.json"))
     enrich_containers(data.containers, load_fixture("containers_page.json"))
+    assert data.containers["0040000000000001"].fraction is None  # overview has counts only
+    enrich_containers(data.containers, load_fixture("linked_address_page.json"))
     first = data.containers["0040000000000001"]
     assert first.fraction == "Restafval"
     assert first.volume == "120 l"
@@ -379,8 +420,17 @@ async def test_containers_page(
     http: aiohttp.ClientSession, site: FakeSite, endpoints: Endpoints
 ) -> None:
     client = AfvalcontainerClient(http, {SESSION: site.new_session()}, endpoints=endpoints)
-    page = await client.async_get_containers_page()
-    assert page["props"]["linkedAddresses"]
+    pages = await client.async_get_container_pages()
+    assert [p["url"] for p in pages] == [
+        "/mijn-containers/containers",
+        "/mijn-containers/containers/addr-0001",
+    ]
+
+
+def test_linked_address_ids() -> None:
+    assert linked_address_ids(load_fixture("containers_page.json")) == ["addr-0001"]
+    assert linked_address_ids({"props": {"linkedAddresses": [{"id": 7}, {"id": 7}, {}]}}) == ["7"]
+    assert linked_address_ids({"props": None}) == []
 
 
 async def test_set_cookies_ignores_unknown(endpoints: Endpoints) -> None:

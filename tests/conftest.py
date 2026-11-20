@@ -123,7 +123,11 @@ def config_entry(site: FakeSite) -> MockConfigEntry:
         domain=DOMAIN,
         title="Afvalcontainer Antwerpen (Jan)",
         unique_id=hash_account_id(EMAIL),
-        data={CONF_COOKIES: {SESSION: site.new_session()}, CONF_INERTIA_VERSION: None},
+        data={
+            CONF_COOKIES: {SESSION: site.new_session()},
+            CONF_INERTIA_VERSION: None,
+            "logged_in_at": FROZEN_NOW,
+        },
         options={CONF_SCAN_INTERVAL: 30},
     )
 

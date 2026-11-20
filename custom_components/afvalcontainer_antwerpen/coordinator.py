@@ -28,6 +28,7 @@ from .api import (
 from .const import (
     CONF_COOKIES,
     CONF_INERTIA_VERSION,
+    CONF_LOGGED_IN_AT,
     CONF_SCAN_INTERVAL,
     CONTAINERS_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -56,6 +57,14 @@ def scan_interval_from_options(options: dict[str, Any]) -> timedelta:
     return timedelta(minutes=max(MIN_SCAN_INTERVAL, min(MAX_SCAN_INTERVAL, minutes)))
 
 
+def _ago(now: datetime, then: datetime | None) -> str:
+    """Human readable age such as ``"9h 12m ago"``."""
+    if then is None:
+        return "unknown"
+    minutes = int((now - then).total_seconds() // 60)
+    return f"{minutes // 60}h {minutes % 60:02d}m ago"
+
+
 class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
     """Polls the balance page, keeps the session alive and fires history events."""
 
@@ -82,6 +91,8 @@ class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
         self._store = seen_store(hass, entry.entry_id)
         self._seen: set[str] | None = None
         self._container_cache: dict[str, ContainerInfo] = {}
+        self.last_success: datetime | None = None
+        self.last_auth_failure: str | None = None
         self._containers_fetched: datetime | None = None
 
     async def _async_setup(self) -> None:
@@ -95,6 +106,7 @@ class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
         try:
             data = await self.client.async_get_balance()
         except NotLoggedInError as err:
+            self._log_session_lost(err)
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN, translation_key="session_expired"
             ) from err
@@ -120,10 +132,31 @@ class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
             ) from err
 
         self._reset_backoff()
+        self.last_success = dt_util.utcnow()
         await self._async_enrich_containers(data)
         self._persist_session()
         await self._async_fire_new_row_events(data)
         return data
+
+    # -- session diagnostics --------------------------------------------- #
+    def logged_in_at(self) -> datetime | None:
+        """When the login data was pasted (None for entries created before 0.1.2)."""
+        value = self.config_entry.data.get(CONF_LOGGED_IN_AT)
+        return dt_util.parse_datetime(value) if isinstance(value, str) else None
+
+    def _log_session_lost(self, err: NotLoggedInError) -> None:
+        """Log why and when the session ended, so the site's limits can be learned."""
+        now = dt_util.utcnow()
+        logged_in_at = self.logged_in_at()
+        self.last_auth_failure = str(err)
+        LOGGER.warning(
+            "Session is no longer valid (%s; silent SSO %s). Last successful update: %s. "
+            "Login data pasted: %s",
+            err,
+            self.client.last_sso_result or "not tried",
+            _ago(now, self.last_success),
+            _ago(now, logged_in_at),
+        )
 
     # -- backoff ---------------------------------------------------------- #
     def _back_off(self) -> None:
@@ -162,11 +195,12 @@ class AfvalcontainerCoordinator(DataUpdateCoordinator[BalanceData]):
         ):
             self._containers_fetched = now
             try:
-                page = await self.client.async_get_containers_page()
+                pages = await self.client.async_get_container_pages()
             except AfvalcontainerError as err:
                 LOGGER.debug("Containers page not available: %s", err)
             else:
-                enrich_containers(data.containers, page)
+                for page in pages:
+                    enrich_containers(data.containers, page)
                 self._container_cache = {
                     number: ContainerInfo(number, info.fraction, info.volume)
                     for number, info in data.containers.items()

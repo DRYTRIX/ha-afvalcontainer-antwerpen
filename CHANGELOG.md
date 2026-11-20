@@ -3,6 +3,29 @@
 All notable changes to this project are documented here. Versions follow
 [SemVer](https://semver.org/).
 
+## [0.1.2] - 2026-11-20
+
+### Added
+- The Laravel "remember me" cookie (`remember_web_…`) is kept if the site sets one, so the
+  site can log the integration back in after the session cookie expired.
+- A warning in the log whenever the session ends, with the reason, the result of the silent
+  SSO attempt, the time since the last successful update and since the login data was pasted.
+  The same timing is in the diagnostics (`session`).
+- `scripts/probe` shows cookie lifetimes (no values), including those in a cookie-editor export.
+
+### Fixed
+- Container labels (e.g. "Restafval 120 l"): the overview page only has counts, so the
+  integration now also reads the page of each linked address, and maps fraction keys such as
+  `residual_waste` to their Dutch label.
+- Pasting two cookie-editor JSON exports after each other (app site + A-profiel) works.
+- `scripts/probe` starts when run directly (it uses the repository virtualenv when the system
+  Python has no aiohttp) and prints a clear message instead of a traceback for unusable input.
+
+### Documentation
+- Silent re-login through A-profiel is verified with a real account. The README explains how
+  to export the A-profiel cookies, so the integration can log itself back in (for up to ~12 h
+  after the itsme login).
+
 ## [0.1.1] - 2026-11-19
 
 ### Changed
@@ -24,5 +47,6 @@ First release.
 - Events `afvalcontainer_antwerpen_new_emptying` / `_new_topup` and matching device triggers.
 - Redacted diagnostics, Dutch and English translations, local brand icon.
 
+[0.1.2]: https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/releases/tag/v0.1.2
 [0.1.1]: https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/releases/tag/v0.1.1
 [0.1.0]: https://github.com/DRYTRIX/ha-afvalcontainer-antwerpen/releases/tag/v0.1.0

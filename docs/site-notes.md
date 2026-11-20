@@ -39,7 +39,15 @@ host-only cookies for `authentication.antwerpen.be`, path
 contain them (different host). `dgp.auth.ssokey` (`.antwerpen.be`) is still
 accepted and sent if present, but it was not observed during this check.
 
-**Silent re-login: implemented, not verified with a real account.** The flow
+**Silent re-login: verified 2026-11-20** with only `KEYCLOAK_IDENTITY`,
+`KEYCLOAK_SESSION`, `AUTH_SESSION_ID` and `dgp.auth.ssokey` (no app session cookie):
+the flow returned to the app and the balance page loaded. Lifetimes seen right after a
+login: `KEYCLOAK_SESSION` 12 h (= Keycloak *SSO Session Max*), `KEYCLOAK_IDENTITY` and
+`AUTH_SESSION_ID` browser-session cookies. So silent re-login works for at most ~12 h after
+the itsme login; the SSO idle timeout is still unknown. A cookie-editor export only lists
+the `KEYCLOAK_*` cookies on a page under `/auth/realms/a-profiel/`.
+
+Original note: the flow
 `/digipolis/individual/redirect → Keycloak auth → /digipolis/individual/callback`
 creates a new app session without user interaction *if* Keycloak still has a
 valid SSO session cookie in our jar. That only happens when the user pasted the
@@ -50,8 +58,31 @@ response renews the 2 h sliding app session, so the session only dies when HA
 is off (or the site is down) for more than ~2 h, or when the site ends sessions
 server-side.
 
+**Observed 2026-11-20:** with a real account the session ended overnight while HA was
+polling every 30 min. Not yet known whether that is an absolute session limit (app or
+Keycloak token lifetime) or an outage longer than 2 h. Since 0.1.2 the coordinator logs the
+timing of every session loss to tell these apart.
+
 To verify, run `scripts/probe --sso` with a cookie-editor export that includes
 the `authentication.antwerpen.be` cookies.
+
+## Verified with a real account (2026-11-20, `scripts/probe`)
+
+* `props.auth.user`: `email`, `first_name`, `last_name`, `full_name`, `telephone`,
+  `company_name`, `company_type`, `type`. No numeric id; the hashed email is the unique id.
+* Balance page props: `balance.current_amount` (float), `balance.minimum_amount` (int),
+  `invoicesUrl`, `features`, `historyRows` (`id`, `date`, `date_sort_value`, `service`,
+  `location`, `weight`, `amount`, `containerNumber`, `orderId`), `historyColumns`,
+  `serviceOptions`, `locationOptions`, `supported_fractions` (key → label).
+  Service labels seen: `Lediging`, `Leveren`, `Provisie`.
+* `/mijn-containers/containers` (`survey/containers/Index`): `addresses[]` with `id`, `label`
+  and only **counts** per address (`containers.total`, …). Container details are expected on
+  `/mijn-containers/containers/{id}` (Ziggy `linked-address.show`); its shape is not yet seen.
+* `/mijn-containers/saldo/export`: `200 text/csv` attachment, `;`-separated, starts with
+  `Datum;`. Same data as `historyRows`, so not used.
+* Cookies: the app sets only `afvalcontainers-antwerpen-session` and `XSRF-TOKEN`
+  (Max-Age 7200). **No Laravel remember-me cookie.** `dgp.auth.ssokey` on `.antwerpen.be`
+  lives ~6 months, but on its own it does **not** give a silent re-login.
 
 ## Not verified (needs an account)
 

@@ -18,6 +18,7 @@ CONFIGURATION_URL: Final = BALANCE_URL
 # Config entry data
 CONF_COOKIES: Final = "cookies"
 CONF_INERTIA_VERSION: Final = "inertia_version"
+CONF_LOGGED_IN_AT: Final = "logged_in_at"
 # Config flow field
 CONF_LOGIN_DATA: Final = "login_data"
 # Options

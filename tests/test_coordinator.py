@@ -146,6 +146,23 @@ async def test_session_dies_later_starts_reauth(
     assert any(path.endswith("/openid-connect/auth") for _, path, _ in site.requests)
 
 
+async def test_session_loss_is_logged_with_timing(
+    hass: HomeAssistant,
+    site: FakeSite,
+    setup_integration: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    await _tick(hass, freezer)  # one more successful poll, 31 min after setup
+    site.valid_sessions.clear()
+    await _tick(hass, freezer)
+    message = next(r.getMessage() for r in caplog.records if "no longer valid" in r.getMessage())
+    assert "silent SSO failed" in message
+    assert "Last successful update: 0h 31m ago" in message
+    assert "Login data pasted: 1h 02m ago" in message
+    assert setup_integration.runtime_data.last_auth_failure
+
+
 async def test_server_error_backoff_and_recovery(
     hass: HomeAssistant,
     site: FakeSite,

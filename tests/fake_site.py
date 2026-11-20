@@ -51,6 +51,9 @@ class FakeSite:
     containers_page: dict[str, Any] = field(
         default_factory=lambda: load_fixture("containers_page.json")
     )
+    linked_address_page: dict[str, Any] = field(
+        default_factory=lambda: load_fixture("linked_address_page.json")
+    )
     fail_with: int | None = None
     renew: bool = True
     requests: list[tuple[str, str, bool]] = field(default_factory=list)
@@ -113,6 +116,7 @@ class FakeSite:
         pages = {
             "/mijn-containers/saldo": self.balance_page,
             "/mijn-containers/containers": self.containers_page,
+            "/mijn-containers/containers/addr-0001": self.linked_address_page,
             "/mijn-containers": {
                 "component": "survey/my-containers/Index",
                 "version": self.version,
