@@ -220,6 +220,8 @@ async def test_diagnostics_redacted(
     ):
         assert secret not in dumped, secret
     assert diagnostics["cookie_names"] == ["XSRF-TOKEN", "afvalcontainers-antwerpen-session"]
+    assert diagnostics["session"]["last_success"] is not None
+    assert diagnostics["session"]["has_remember_cookie"] is False
     assert diagnostics["data"]["current_amount"] == 26.94
     assert diagnostics["data"]["containers"][0]["short_id"] == "0001"
     assert len(diagnostics["data"]["history"]) == 6

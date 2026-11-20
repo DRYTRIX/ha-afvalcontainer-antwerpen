@@ -54,6 +54,21 @@ KEYCLOAK_COOKIES: Final = (
 APP_COOKIES: Final = (SESSION_COOKIE, XSRF_COOKIE)
 SSO_COOKIES: Final = (DGP_SSO_COOKIE, *KEYCLOAK_COOKIES)
 ALLOWED_COOKIES: Final = (*APP_COOKIES, *SSO_COOKIES)
+# Laravel "remember me" cookie: remember_<guard>_<sha1>. Lets the site log the
+# user back in after the 2 h session cookie expired, if the site issues it.
+_REMEMBER_COOKIE_PATTERN: Final = r"remember_[a-z]+_[0-9a-f]{40}"
+_REMEMBER_COOKIE_RE = re.compile(_REMEMBER_COOKIE_PATTERN)
+
+
+def is_allowed_cookie(name: str) -> bool:
+    """Return True for the cookies this integration keeps."""
+    return name in ALLOWED_COOKIES or _REMEMBER_COOKIE_RE.fullmatch(name) is not None
+
+
+def is_remember_cookie(name: str) -> bool:
+    """Return True for a Laravel remember-me cookie."""
+    return _REMEMBER_COOKIE_RE.fullmatch(name) is not None
+
 
 USER_AGENT: Final = "Mozilla/5.0 (X11; Linux x86_64; rv:145.0) Gecko/20100101 Firefox/145.0"
 DEFAULT_TIMEOUT: Final = 30.0
@@ -120,7 +135,10 @@ _PS_COOKIE_RE = re.compile(
 )
 _ALLOWED_PAIR_RE = re.compile(
     r"(?<![\w.%-])("
-    + "|".join(re.escape(name) for name in sorted(ALLOWED_COOKIES, key=len, reverse=True))
+    + "|".join(
+        [_REMEMBER_COOKIE_PATTERN]
+        + [re.escape(name) for name in sorted(ALLOWED_COOKIES, key=len, reverse=True)]
+    )
     + r")=([^;,\s'\"\\]+)"
 )
 
@@ -142,11 +160,13 @@ def parse_login_data(text: str) -> dict[str, str]:
     if text:
         for extractor in (_from_json, _from_powershell, _from_netscape, _from_text):
             for name, value in extractor(text):
-                if name in ALLOWED_COOKIES and value and name not in found:
+                if is_allowed_cookie(name) and value and name not in found:
                     found[name] = value
             if SESSION_COOKIE in found:
                 break
-    if SESSION_COOKIE not in found and not any(name in found for name in SSO_COOKIES):
+    if SESSION_COOKIE not in found and not any(
+        name in SSO_COOKIES or is_remember_cookie(name) for name in found
+    ):
         raise InvalidLoginDataError("No afvalcontainer session cookie found in the pasted data")
     return found
 
@@ -563,6 +583,8 @@ class AfvalcontainerClient:
         self._sso = URL(self._endpoints.sso_url)
         self._timeout = aiohttp.ClientTimeout(total=timeout)
         self.inertia_version = inertia_version
+        # Outcome of the last silent SSO attempt: None, "succeeded" or "failed".
+        self.last_sso_result: str | None = None
         if cookies:
             self.set_cookies(cookies)
 
@@ -571,7 +593,7 @@ class AfvalcontainerClient:
         """Seed the cookie jar with (whitelisted) cookies."""
         parent = _parent_domain(self._base.host)
         for name, value in cookies.items():
-            if name not in ALLOWED_COOKIES or not value:
+            if not is_allowed_cookie(name) or not value:
                 continue
             morsels: SimpleCookie = SimpleCookie()
             morsels[name] = value
@@ -590,7 +612,7 @@ class AfvalcontainerClient:
         result: dict[str, str] = {}
         for url in (self._base.join(URL(BALANCE_PATH)), self._sso):
             for name, morsel in self._session.cookie_jar.filter_cookies(url).items():
-                if name in ALLOWED_COOKIES and morsel.value:
+                if is_allowed_cookie(name) and morsel.value:
                     result[name] = morsel.value
         return result
 
@@ -608,7 +630,10 @@ class AfvalcontainerClient:
                 raise
             _LOGGER.debug("Session not logged in, trying silent SSO re-login")
             if not await self.async_try_sso():
+                self.last_sso_result = "failed"
                 raise
+            self.last_sso_result = "succeeded"
+            _LOGGER.info("Session expired; logged in again through the A-profiel SSO")
             page = await self._async_get_page(BALANCE_PATH, BALANCE_COMPONENT)
         return parse_balance_page(page)
 

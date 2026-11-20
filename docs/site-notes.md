@@ -50,6 +50,11 @@ response renews the 2 h sliding app session, so the session only dies when HA
 is off (or the site is down) for more than ~2 h, or when the site ends sessions
 server-side.
 
+**Observed 2026-11-20:** with a real account the session ended overnight while HA was
+polling every 30 min. Not yet known whether that is an absolute session limit (app or
+Keycloak token lifetime) or an outage longer than 2 h. Since 0.1.2 the coordinator logs the
+timing of every session loss to tell these apart.
+
 To verify, run `scripts/probe --sso` with a cookie-editor export that includes
 the `authentication.antwerpen.be` cookies.
 
