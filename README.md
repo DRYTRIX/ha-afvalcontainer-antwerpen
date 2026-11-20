@@ -112,8 +112,8 @@ about a minute.
 - A JSON export from a cookie-editor browser extension, or a `cookies.txt` file
 
 Whatever you paste, the integration keeps only `afvalcontainers-antwerpen-session`,
-`XSRF-TOKEN` and the A-profiel SSO cookies (`dgp.auth.ssokey`, `KEYCLOAK_*`,
-`AUTH_SESSION_ID`). Everything else is thrown away before anything is stored.
+`XSRF-TOKEN`, the site's "remember me" cookie (`remember_web_…`) if it has one, and the
+A-profiel SSO cookies (`dgp.auth.ssokey`, `KEYCLOAK_*`, `AUTH_SESSION_ID`). Everything else is thrown away before anything is stored.
 
 ![Setup step](docs/screenshots/config-flow.png)
 
@@ -248,6 +248,14 @@ re-paste when:
 Before asking you, the integration tries a silent re-login through the A-profiel SSO. That
 only works if you pasted the SSO cookies too and that SSO session is still valid, which is
 usually not the case after a long outage.
+
+**The session ends overnight although HA kept running?** Then the website (or A-profiel)
+probably caps how long a login lasts, no matter how often it is used. Every time the session
+ends, the log has a warning like
+`Session is no longer valid (HTTP 401; silent SSO failed). Last successful update: 0h 30m ago.
+Login data pasted: 9h 41m ago`. If *last successful update* is short, the site ended the
+session; if it is longer than 2 hours, HA or the site was unreachable for that long. Please add
+that line to an issue (it contains no personal data) so the limit can be documented.
 
 **"No afvalcontainer session cookie found"**: you copied a different request or weren't
 logged in. Copy the **saldo** request from the Network tab after the balance is visible.

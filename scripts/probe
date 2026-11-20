@@ -46,6 +46,50 @@ def shape(node: Any, depth: int = 0, max_depth: int = 4) -> Any:
     return type(node).__name__
 
 
+def label(name: str) -> str:
+    """Cookie name without the remember-me hash suffix."""
+    return "remember_*" if api.is_remember_cookie(name) else name
+
+
+def pasted_lifetimes(text: str) -> dict[str, str] | None:
+    """Remaining lifetime per cookie in a cookie-editor JSON export (names only)."""
+    import json  # noqa: PLC0415
+    import time  # noqa: PLC0415
+
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return None
+    items = data.get("cookies", data) if isinstance(data, dict) else data
+    if not isinstance(items, list):
+        return None
+    result: dict[str, str] = {}
+    for item in items:
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str):
+            continue
+        domain = str(item.get("domain", ""))
+        if not domain.lstrip(".").endswith("antwerpen.be"):
+            continue
+        expires = item.get("expirationDate")
+        if item.get("session") or not isinstance(expires, int | float):
+            remaining = "browser session"
+        else:
+            remaining = f"{(expires - time.time()) / 3600:.1f} h left"
+        result[f"{label(item['name'])} @ {domain}"] = remaining
+    return result
+
+
+def jar_lifetimes(session: aiohttp.ClientSession) -> dict[str, dict[str, str]]:
+    """Lifetime attributes of every cookie the site set (no values)."""
+    return {
+        f"{label(m.key)} @ {m['domain'] or '(host)'}": {
+            "max-age": m["max-age"] or "-",
+            "expires": "set" if m["expires"] else "-",
+        }
+        for m in session.cookie_jar
+    }
+
+
 def show(title: str, value: Any) -> None:
     """Print a titled JSON block."""
     import json  # noqa: PLC0415
@@ -58,8 +102,11 @@ async def main() -> None:
     """Run the probe."""
     test_sso = "--sso" in sys.argv
     print("Paste your login data, then press Ctrl-D (Ctrl-Z Enter on Windows):", file=sys.stderr)
-    cookies = api.parse_login_data(sys.stdin.read())
-    show("cookies found (names only)", sorted(cookies))
+    text = sys.stdin.read()
+    cookies = api.parse_login_data(text)
+    show("cookies kept (names only)", sorted(label(n) for n in cookies))
+    if (lifetimes := pasted_lifetimes(text)) is not None:
+        show("cookie lifetimes in the export", lifetimes)
 
     async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar()) as session:
         client = api.AfvalcontainerClient(session, cookies)
@@ -83,6 +130,7 @@ async def main() -> None:
             )
             page = await client._async_get_page(api.BALANCE_PATH, api.BALANCE_COMPONENT)  # noqa: SLF001
             show("balance props shape", shape(page.get("props"), max_depth=3))
+            show("cookies set by the site (lifetimes only)", jar_lifetimes(session))
 
             for path in ("/mijn-containers", api.CONTAINERS_PATH):
                 try:

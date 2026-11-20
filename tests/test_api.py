@@ -141,6 +141,25 @@ def test_parse_login_data_keeps_sso_cookies_only_from_whitelist() -> None:
     assert parse_login_data(pasted) == {"dgp.auth.ssokey": "sso1", "KEYCLOAK_IDENTITY": "kc1"}
 
 
+REMEMBER = "remember_web_0123456789abcdef0123456789abcdef01234567"
+
+
+def test_parse_login_data_keeps_laravel_remember_cookie() -> None:
+    pasted = f"Cookie: {REMEMBER}=rem1; afvalcontainers-antwerpen-session=s1; _ga=x"
+    assert parse_login_data(pasted) == {REMEMBER: "rem1", "afvalcontainers-antwerpen-session": "s1"}
+    # A remember cookie alone is enough to try logging in.
+    assert parse_login_data(f"{REMEMBER}=rem1") == {REMEMBER: "rem1"}
+    # Lookalikes are not kept.
+    with pytest.raises(InvalidLoginDataError):
+        parse_login_data("remember_web_short=rem1")
+
+
+async def test_remember_cookie_round_trips_through_jar(endpoints: Endpoints) -> None:
+    async with aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True)) as session:
+        client = AfvalcontainerClient(session, {REMEMBER: "rem1"}, endpoints=endpoints)
+        assert client.export_cookies() == {REMEMBER: "rem1"}
+
+
 def test_parse_login_data_does_not_match_header_names() -> None:
     with pytest.raises(InvalidLoginDataError):
         parse_login_data("X-XSRF-TOKEN: abc\nmy-afvalcontainers-antwerpen-session=nope")

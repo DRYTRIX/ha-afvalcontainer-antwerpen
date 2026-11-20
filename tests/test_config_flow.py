@@ -67,6 +67,7 @@ async def test_user_flow_success(
     assert cookies[SESSION] != pasted_session  # renewed cookie stored
     assert cookies[SESSION] in site.valid_sessions
     assert result["data"][CONF_INERTIA_VERSION] == VERSION
+    assert "logged_in_at" in result["data"]
     assert result["options"] == {CONF_SCAN_INTERVAL: 30}
     assert len(mock_setup_entry.mock_calls) == 1
 

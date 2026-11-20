@@ -21,6 +21,7 @@ from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
 )
+from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
 from .api import (
@@ -34,6 +35,7 @@ from .api import (
 from .const import (
     CONF_COOKIES,
     CONF_INERTIA_VERSION,
+    CONF_LOGGED_IN_AT,
     CONF_LOGIN_DATA,
     CONF_LOW_BALANCE_THRESHOLD,
     CONF_SCAN_INTERVAL,
@@ -151,7 +153,11 @@ class AfvalcontainerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def _async_finish(self, login: ValidatedLogin) -> ConfigFlowResult:
         await self.async_set_unique_id(login.data.account.account_id)
-        data = {CONF_COOKIES: login.cookies, CONF_INERTIA_VERSION: login.inertia_version}
+        data = {
+            CONF_COOKIES: login.cookies,
+            CONF_INERTIA_VERSION: login.inertia_version,
+            CONF_LOGGED_IN_AT: dt_util.utcnow().isoformat(),
+        }
         if self.source in (SOURCE_REAUTH, SOURCE_RECONFIGURE):
             self._abort_if_unique_id_mismatch(reason="wrong_account")
             entry = (

@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. Versions follow
 [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- The Laravel "remember me" cookie (`remember_web_…`) is kept if the site sets one, so the
+  site can log the integration back in after the session cookie expired.
+- A warning in the log whenever the session ends, with the reason, the result of the silent
+  SSO attempt, the time since the last successful update and since the login data was pasted.
+  The same timing is in the diagnostics (`session`).
+- `scripts/probe` shows cookie lifetimes (no values), including those in a cookie-editor export.
+
 ## [0.1.1] - 2026-11-19
 
 ### Changed
